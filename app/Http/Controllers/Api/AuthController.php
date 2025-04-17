@@ -51,6 +51,21 @@ class AuthController extends Controller
         ]);
     }
 
+    public function logout(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $user->token()->revoke();
+
+            return $this->successResponse(
+                null,
+                'User logged out successfully'
+            );
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
+    }
+
     public function forgotPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [

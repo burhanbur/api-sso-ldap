@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\UserController;
 
 Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('logout', [AuthController::class, 'logout']);
     Route::get('ldap', [UserController::class, 'userLdap']);
 
     Route::group(['prefix' => 'password'], function () {
