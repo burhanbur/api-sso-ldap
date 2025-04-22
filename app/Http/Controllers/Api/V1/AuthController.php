@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -296,33 +296,10 @@ class AuthController extends Controller
 
     public function me()
     {
-        $user = auth()->user();
-
-        $roles = $user->userRoles()
-            ->with(['role', 'application', 'entityType'])
-            ->get()
-            ->map(function ($userRole) {
-                return [
-                    'role_code' => $userRole->role->name ?? null,
-                    'role_name' => $userRole->role->display_name ?? null,
-                    'app_code' => $userRole->application->code ?? null,
-                    'app_name' => $userRole->application->name ?? null,
-                    'entity_type' => $userRole->entityType->code ?? null,
-                    'entity_id' => $userRole->entity_id,
-                ];
-            });
-
-        $data = [
-            'uuid' => $user->uuid,
-            'username' => $user->username,
-            'full_name' => $user->full_name,
-            'email' => $user->email,
-            'status' => $user->status,
-            'roles' => $roles,
-        ];
+        $user = auth()->user()->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);
 
         return $this->successResponse(
-            $data,
+            new UserResource($user),
             'User data retrieved successfully'
         );
     }

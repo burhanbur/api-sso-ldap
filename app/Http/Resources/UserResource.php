@@ -15,6 +15,7 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'uuid' => $this->uuid,
             'username' => $this->username,
             'code' => $this->code,
@@ -25,6 +26,18 @@ class UserResource extends JsonResource
             'join_date' => $this->join_date,
             'title' => $this->title,
             'status' => $this->status,
+            'app_access' => $this->whenLoaded('userRoles', function() {
+                return $this->userRoles->map(function ($userRole) {
+                    return [
+                        'role_code' => $userRole->role->name ?? null,
+                        'role_name' => $userRole->role->display_name ?? null,
+                        'app_code' => $userRole->application->code ?? null,
+                        'app_name' => $userRole->application->name ?? null,
+                        'entity_type' => $userRole->entityType->code ?? null,
+                        'entity_id' => $userRole->entity_id,
+                    ];
+                });
+            }),
         ];
     }
 }

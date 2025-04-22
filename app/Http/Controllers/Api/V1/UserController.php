@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -31,7 +31,7 @@ class UserController extends Controller
         $response = $this->errorResponse($this->errMessage);
 
         try {
-            $query = User::query();
+            $query = User::with(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);
 
             if ($search = $request->query('search')) {
                 $query->where(function ($q) use ($search) {
@@ -48,7 +48,8 @@ class UserController extends Controller
             $users = $query->orderBy('full_name')->paginate(10);
             
             $response = $this->successResponse(
-                $users,
+                // $users,
+                UserResource::collection($users),
                 'Users retrieved successfully'
             );
         } catch (Exception $ex) {
@@ -63,7 +64,7 @@ class UserController extends Controller
         $response = $this->errorResponse($this->errMessage);
         
         try {
-            $user = User::where('uuid', $uuid)->first();
+            $user = User::with(['userRoles.role', 'userRoles.application', 'userRoles.entityType'])->where('uuid', $uuid)->first();
 
             if (!$user) {
                 return $this->errorResponse('User not found', 404);

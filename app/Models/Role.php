@@ -11,8 +11,12 @@ class Role extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid', 'name', 'display_name', 'description',
-        'role_type_id', 'scope_type_id'
+        'uuid', 
+        'name', 
+        'display_name', 
+        'description',
+        'role_type_id', 
+        'scope_type_id'
     ];
 
     public function roleType()

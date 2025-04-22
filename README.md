@@ -137,10 +137,6 @@ Common issues and solutions:
    - Check database credentials
    - Ensure database exists
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Support
 
 For support, please contact the development team or create an issue in the repository.
