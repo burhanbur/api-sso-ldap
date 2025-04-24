@@ -50,10 +50,35 @@ return Application::configure(basePath: dirname(__DIR__))
                     $e instanceof Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException => 401,
                     default => 500,
                 };
-                
+
+                if (env('APP_ENV') == 'live') {
+                    if ($statusCode == 404) {
+                        $message = 'The requested resource was not found.';
+                    } elseif ($statusCode == 401) {
+                        $message = 'Unauthorized access. Please login to continue.';
+                    } elseif ($statusCode == 403) {
+                        $message = 'Forbidden access. You do not have permission to perform this action.';
+                    } elseif ($statusCode == 422) {
+                        $message = 'Validation error. Please check your input.';
+                    } else {
+                        $message = 'An error occurred while processing your request. Please try again later.';
+                    }
+                    
+                    Log::error($message, [
+                        'url' => request()->url(),
+                        'method' => request()->method(),
+                        'timestamp' => now()->toDateTimeString(),
+                    ]);
+                } else {
+                    $message = $e->getMessage() ?? 'Internal Server Error';
+                }
+        
                 return response()->json([
                     'success' => false,
-                    'message' => $e->getMessage() ?? 'Internal Server Error',
+                    'message' => $message,
+                    'url' => request()->url(),
+                    'method' => request()->method(),
+                    'timestamp' => now()->toDateTimeString(),
                 ], $statusCode);
             }
             

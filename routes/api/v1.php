@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\RoleTypeController;
 use App\Http\Controllers\Api\V1\ScopeController;
 use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\UserRoleController;
 
 
 Route::group(['prefix' => 'v1'], function () {
@@ -20,11 +21,15 @@ Route::group(['prefix' => 'v1'], function () {
 
         Route::group(['prefix' => 'password'], function () {
             Route::post('forgot', [AuthController::class, 'forgotPassword']);
-            Route::post('reset', [AuthController::class, 'resetPassword']);  
+            Route::post('reset', [AuthController::class, 'resetPassword']);
             
             Route::group(['middleware' => ['jwt.auth']], function () {
-                Route::post('change', [AuthController::class, 'changeUserPassword']);  
+                Route::post('change', [AuthController::class, 'changeUserPassword']);
             });
+        });
+
+        Route::group(['middleware' => ['jwt.auth']], function () {
+            Route::get('refresh', [AuthController::class, 'refreshToken']);        
         });
 
         Route::group(['prefix' => 'me', 'middleware' => ['jwt.auth']], function () {
@@ -46,6 +51,12 @@ Route::group(['prefix' => 'v1'], function () {
         Route::get('entity-types', [EntityTypeController::class, 'index']);
         Route::get('role-types', [RoleTypeController::class, 'index']);
         
+        Route::group(['prefix' => 'user-roles'], function () {
+            Route::get('/', [UserRoleController::class, 'index']);
+            Route::post('/', [UserRoleController::class, 'store']);
+            Route::delete('/{uuid}', [UserRoleController::class, 'destroy']);
+        });
+
         Route::group(['prefix' => 'roles'], function () {
             Route::get('/', [RoleController::class, 'index']);
             Route::get('/{uuid}', [RoleController::class, 'show']);
@@ -60,7 +71,7 @@ Route::group(['prefix' => 'v1'], function () {
             Route::post('/', [ApplicationController::class, 'store']);
             Route::put('/{uuid}', [ApplicationController::class, 'update']);
             Route::put('/{uuid}/status', [ApplicationController::class, 'updateStatus']);
-            Route::delete('/{uuid}', [ApplicationController::class, 'destroy']);        
+            Route::delete('/{uuid}', [ApplicationController::class, 'destroy']);
         });
     });
 });

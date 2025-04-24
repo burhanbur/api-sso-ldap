@@ -26,18 +26,29 @@ class UserResource extends JsonResource
             'join_date' => $this->join_date,
             'title' => $this->title,
             'status' => $this->status,
-            'app_access' => $this->whenLoaded('userRoles', function() {
-                return $this->userRoles->map(function ($userRole) {
-                    return [
-                        'role_code' => $userRole->role->name ?? null,
-                        'role_name' => $userRole->role->display_name ?? null,
-                        'app_code' => $userRole->application->code ?? null,
-                        'app_name' => $userRole->application->name ?? null,
-                        'entity_type' => $userRole->entityType->code ?? null,
-                        'entity_id' => $userRole->entity_id,
-                    ];
-                });
+            'app_access' => $this->whenLoaded('userRoles', function () {
+                return $this->userRoles
+                    ->groupBy(fn ($role) => $role->application->code ?? 'unknown')
+                    ->map(function ($roles) {
+                        $first = $roles->first();
+        
+                        return [
+                            'code' => $first->application->code ?? null,
+                            'name' => $first->application->name ?? null,
+                            'base_url'  => $first->application->base_url ?? null,
+                            'roles' => $roles->map(function ($role) {
+                                return [
+                                    'code' => $role->role->name ?? null,
+                                    'name' => $role->role->display_name ?? null,
+                                    'entity' => [
+                                        'type' => $role->entityType->code ?? null,
+                                        'id' => $role->entity_id,
+                                    ],
+                                ];
+                            })->values(),
+                        ];
+                    })->values();
             }),
-        ];
+        ];        
     }
 }

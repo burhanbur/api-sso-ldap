@@ -294,6 +294,17 @@ class AuthController extends Controller
         return $response;
     }
 
+    public function refreshToken()
+    {
+        $newToken = JWTAuth::parseToken()->refresh();
+
+        return response()->json([
+            'access_token' => $newToken,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
+        ]);
+    }
+
     public function me()
     {
         $user = auth()->user()->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);

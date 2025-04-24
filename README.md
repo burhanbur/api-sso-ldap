@@ -90,21 +90,23 @@ Add this to your Apache virtual host configuration:
 ### Authentication Endpoints
 
 ```
-POST /api/login
-POST /api/logout
-POST /api/refresh
-POST /api/forgot-password
-POST /api/reset-password
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+POST /api/v1/auth/refresh
+POST /api/v1/auth/password/change
+POST /api/v1/auth/password/forgot
+POST /api/v1/auth/password/reset
 ```
 
 ### User Management Endpoints
 
 ```
-GET    /api/users
-POST   /api/users
-GET    /api/users/{uuid}
-PUT    /api/users/{uuid}
-DELETE /api/users/{uuid}
+GET    /api/v1/users
+POST   /api/v1/users
+GET    /api/v1/users/{uuid}
+PUT    /api/v1/users/{uuid}
+PUT    /api/v1/users/{uuid}/status
+DELETE /api/v1/users/{uuid}
 ```
 
 ## Security
@@ -112,7 +114,6 @@ DELETE /api/users/{uuid}
 - All passwords are hashed using SSHA for LDAP storage
 - JWT tokens expire after 1 hour
 - Password reset tokens expire after 1 hour
-- CSRF protection enabled for web routes
 - Rate limiting enabled for API endpoints
 
 ## Testing
