@@ -44,12 +44,29 @@ class UserController extends Controller
             if ($status = $request->query('status')) {
                 $query->where('status', $status);
             }
+
+            $sortParams = $request->query('sort');
+            if ($sortParams) {
+                $sorts = explode(';', $sortParams);
+                $allowedSortFields = ['created_at', 'full_name', 'username', 'status'];
     
-            $users = $query->orderBy('full_name')->paginate(10);
+                foreach ($sorts as $sort) {
+                    [$field, $direction] = explode(',', $sort) + [null, 'asc'];
+                    $direction = strtolower($direction) === 'desc' ? 'desc' : 'asc';
+    
+                    if (in_array($field, $allowedSortFields)) {
+                        $query->orderBy($field, $direction);
+                    }
+                }
+            } else {
+                $query->orderBy('full_name');
+            }
+    
+            $data = $query->paginate((int) $request->query('limit', 10));
             
             $response = $this->successResponse(
                 // $users,
-                UserResource::collection($users),
+                UserResource::collection($data),
                 'Users retrieved successfully'
             );
         } catch (Exception $ex) {

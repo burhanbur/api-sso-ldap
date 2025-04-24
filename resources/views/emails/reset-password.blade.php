@@ -313,7 +313,7 @@
                                                                     <p>Please click the button below to reset your password:</p>
                                                                 
                                                                     {{-- TODO: ubah url menjadi link CENTRAL --}}
-                                                                    <a href="{{ url('reset-password?token=' . $token . '&email=' . $email) }}" class="btn btn-primary" target="_blank">
+                                                                    <a href="{{ $url . '/reset-password?token=' . $token . '&email=' . $email }}" class="btn btn-primary" target="_blank">
                                                                         Reset Password
                                                                     </a>
                                                                     

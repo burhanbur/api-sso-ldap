@@ -33,13 +33,13 @@ class AuthController extends Controller
         $credentials = $request->only('username', 'password');
 
         if (!Ldap::bind($credentials['username'], $credentials['password'])) {
-            return $this->errorResponse('Invalid LDAP credentials', 401);
+            return $this->errorResponse('Invalid credentials', 401);
         }
 
         $user = User::where('username', $credentials['username'])->first();
 
         if (!$user) {
-            return $this->errorResponse('User not registered in Database local', 401);
+            return $this->errorResponse('User not registered', 401);
         }
 
         $token = JWTAuth::fromUser($user);
@@ -97,6 +97,7 @@ class AuthController extends Controller
 
             // Send reset email
             Mail::send('emails.reset-password', [
+                'url' => env('VITE_APP_URL'),
                 'full_name' => $user->full_name,
                 'email' => $user->email,
                 'token' => $token,

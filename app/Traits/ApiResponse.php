@@ -55,14 +55,24 @@ trait ApiResponse
 
     protected function errorResponse($message, $code = 400)
     {
+        // Jika message berupa array atau JSON string, konversi ke string
+        if (is_array($message) || is_object($message)) {
+            $message = collect($message)->flatten()->implode(', ');
+        } elseif (is_string($message)) {
+            // Coba decode dan proses kalau dia berbentuk JSON string
+            $decoded = json_decode($message, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $message = collect($decoded)->flatten()->implode(', ');
+            }
+        }
+
         if (env('APP_ENV') == 'live') {
-            $message = 'An error occurred while processing your request. Please try again later.';
-            
             Log::error($message, [
                 'url' => request()->url(),
                 'method' => request()->method(),
                 'timestamp' => now()->toDateTimeString(),
             ]);
+            $message = 'An error occurred while processing your request. Please try again later.';
         }
 
         return response()->json([
