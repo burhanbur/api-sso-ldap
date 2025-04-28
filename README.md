@@ -21,7 +21,7 @@ A Laravel-based Single Sign-On (SSO) backend application that provides authentic
 
 - PHP >= 8.2
 - Composer
-- MySQL/MariaDB
+- PostgreSQL
 - Redis (optional, for caching)
 - Node.js & NPM (for frontend assets)
 
