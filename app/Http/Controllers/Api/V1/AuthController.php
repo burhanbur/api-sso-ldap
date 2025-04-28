@@ -297,13 +297,27 @@ class AuthController extends Controller
 
     public function refreshToken()
     {
-        $newToken = JWTAuth::parseToken()->refresh();
-
-        return response()->json([
-            'access_token' => $newToken,
-            'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
-        ]);
+        try {
+            $token = JWTAuth::parseToken();
+            
+            // Get the current token's claims
+            $payload = $token->getPayload();
+            $user = auth()->user();
+            
+            // Invalidate old token
+            $token->invalidate();
+            
+            // Generate new token
+            $newToken = JWTAuth::fromUser($user);
+            
+            return response()->json([
+                'access_token' => $newToken,
+                'token_type' => 'bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+            ]);
+        } catch (Exception $e) {
+            return $this->errorResponse('Could not refresh token', 401);
+        }
     }
 
     public function me()

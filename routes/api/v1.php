@@ -29,7 +29,7 @@ Route::group(['prefix' => 'v1'], function () {
         });
 
         Route::group(['middleware' => ['jwt.auth']], function () {
-            Route::get('refresh', [AuthController::class, 'refreshToken']);        
+            Route::post('refresh', [AuthController::class, 'refreshToken']);        
         });
 
         Route::group(['prefix' => 'me', 'middleware' => ['jwt.auth']], function () {
