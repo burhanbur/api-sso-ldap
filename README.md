@@ -1,23 +1,42 @@
-# Single Sign-On (SSO) System
+# SSO Backend (Laravel)
 
-A secure Single Sign-On system built with Laravel 11 and integrated with LDAP authentication.
-
-## System Requirements
-
-- PHP 8.2 or higher
-- Composer 2.0+
-- PostgreSQL 13+
-- Apache 2.4+
-- OpenLDAP 2.5.8
+A Laravel-based Single Sign-On (SSO) backend application that provides authentication, authorization, and user management services.
 
 ## Features
 
-- LDAP Authentication
-- JWT Token-based API
-- Password Reset System
+- JWT Authentication
+- Role-Based Access Control (RBAC)
 - User Management
-- Role-based Access Control
-- Session Management
+- Application Management
+- PDF Generation with DomPDF
+- Excel Import/Export functionality
+- DataTables integration
+- QR Code Generation
+- User Impersonation
+- Snowflake ID Generation
+- Redis Cache Support
+- Sweet Alert Integration
+
+## Prerequisites
+
+- PHP >= 8.2
+- Composer
+- MySQL/MariaDB
+- Redis (optional, for caching)
+- Node.js & NPM (for frontend assets)
+
+## Technology Stack
+
+- Laravel 11.x
+- JWT Auth for API authentication
+- Laravel DataTables
+- Laravel Excel
+- DomPDF
+- Simple QR Code
+- Laravel Impersonate
+- Snowflake ID Generator
+- SweetAlert
+- Predis (Redis Client)
 
 ## Installation
 
@@ -32,9 +51,9 @@ cd sso
 composer install
 ```
 
-3. Copy environment file:
+3. Create environment file:
 ```bash
-copy .env.example .env
+cp .env.example .env
 ```
 
 4. Generate application key:
@@ -47,14 +66,21 @@ php artisan key:generate
 php artisan jwt:secret
 ```
 
-6. Configure your environment variables in `.env`:
-```ini
-DB_CONNECTION=pgsql
+6. Configure your .env file with database and other settings:
+```env
+DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
-DB_PORT=5432
+DB_PORT=3306
 DB_DATABASE=your_database
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+JWT_SECRET=your_jwt_secret
+JWT_TTL=60
 
 LDAP_HOST=ldap://your-ldap-server
 LDAP_PORT=389
@@ -67,6 +93,12 @@ LDAP_PEOPLE_OU=ou=people
 7. Run database migrations:
 ```bash
 php artisan migrate
+```
+
+8. Install frontend dependencies and build assets (if needed):
+```bash
+npm install
+npm run dev
 ```
 
 ## Apache Configuration
@@ -85,29 +117,31 @@ Add this to your Apache virtual host configuration:
 </VirtualHost>
 ```
 
-## API Documentation
+## Development Server
 
-### Authentication Endpoints
-
-```
-POST /api/v1/auth/login
-POST /api/v1/auth/logout
-POST /api/v1/auth/refresh
-POST /api/v1/auth/password/change
-POST /api/v1/auth/password/forgot
-POST /api/v1/auth/password/reset
+Start the development server:
+```bash
+php artisan serve
 ```
 
-### User Management Endpoints
+Or use the custom dev command that runs multiple services:
+```bash
+composer run-script dev
+```
 
-```
-GET    /api/v1/users
-POST   /api/v1/users
-GET    /api/v1/users/{uuid}
-PUT    /api/v1/users/{uuid}
-PUT    /api/v1/users/{uuid}/status
-DELETE /api/v1/users/{uuid}
-```
+This will concurrently run:
+- Laravel development server
+- Queue worker
+- Log viewer (Pail)
+- Vite development server
+
+## Available Commands
+
+- `php artisan serve` - Start the development server
+- `php artisan migrate` - Run database migrations
+- `php artisan db:seed` - Seed the database
+- `php artisan queue:work` - Start the queue worker
+- `php artisan storage:link` - Create symbolic link for storage
 
 ## Security
 
@@ -119,10 +153,57 @@ DELETE /api/v1/users/{uuid}
 ## Testing
 
 Run the test suite:
-
 ```bash
 php artisan test
 ```
+
+## Docker Support
+
+The application includes Docker configurations for different PHP versions (8.0-8.4) and database options (MySQL, MariaDB, PostgreSQL). To use Docker:
+
+1. Choose your configuration in the docker directory
+2. Use Laravel Sail:
+```bash
+./vendor/bin/sail up
+```
+
+## Directory Structure
+
+```
+app/
+├── Exports/       # Excel export classes
+├── Helpers/       # Helper functions
+├── Http/          # Controllers, Middleware, Requests
+├── Models/        # Eloquent models
+├── Providers/     # Service providers
+├── Services/      # Business logic services
+├── Traits/        # Reusable traits
+└── Utilities/     # Utility classes
+
+database/
+├── factories/     # Model factories
+├── migrations/    # Database migrations
+└── seeders/      # Database seeders
+```
+
+## API Documentation
+
+The application provides RESTful APIs for:
+- Authentication (login, logout, refresh token)
+- User management
+- Role management
+- Application management
+- Password reset functionality
+
+Detailed API documentation should be maintained separately.
+
+## Security
+
+- JWT-based authentication
+- Role-based authorization
+- User impersonation logging
+- Request rate limiting
+- CORS protection
 
 ## Troubleshooting
 
@@ -138,6 +219,21 @@ Common issues and solutions:
    - Check database credentials
    - Ensure database exists
 
+## Additional Information
+
+- Uses Snowflake IDs for distributed unique identifiers
+- Supports PDF generation for reports
+- Excel import/export functionality
+- QR code generation capabilities
+- Includes user impersonation for admin debugging
+- Redis caching support for improved performance
+- Sweet Alert integration for better UX
+- DataTables for efficient data presentation
+
 ## Support
 
 For support, please contact the development team or create an issue in the repository.
+
+## License
+
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
