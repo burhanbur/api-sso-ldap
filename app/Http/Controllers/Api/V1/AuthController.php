@@ -54,8 +54,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            $user = auth()->user();
-            $user->token()->revoke();
+            JWTAuth::invalidate(JWTAuth::getToken());
 
             return $this->successResponse(
                 null,
@@ -328,5 +327,68 @@ class AuthController extends Controller
             new UserResource($user),
             'User data retrieved successfully'
         );
+    }
+
+    public function startImpersonate(Request $request, $uuid)
+    {
+        $admin = auth()->user();
+        $target = User::where('uuid', $uuid)->first();
+
+        if (!$target) {
+            return $this->errorResponse('User not found', 404);
+        }
+
+        if ($admin->uuid === $target->uuid) {
+            return $this->errorResponse('Cannot impersonate yourself', 403);
+        }
+
+        $target->setCustomClaims(['impersonated_by' => $admin->uuid]);
+        $token = JWTAuth::fromUser($target);
+
+        return $this->successResponse(
+            [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'impersonated_user' => $target,
+            ],
+            'Impersonation successfully'
+        );
+    }
+
+    public function leaveImpersonate(Request $request)
+    {
+        $current = auth()->user();
+        $originalAdminUuid = JWTAuth::getPayload()->get('impersonated_by');
+
+        if (!$originalAdminUuid) {
+            return $this->errorResponse('Not impersonating any user', 403);
+        }
+
+        $admin = User::where('uuid', $originalAdminUuid)->first();
+        
+        if (!$admin) {
+            return $this->errorResponse('User not found', 404);
+        }
+
+        JWTAuth::invalidate(JWTAuth::getToken());
+        $token = JWTAuth::fromUser($admin);
+
+        return $this->successResponse(
+            [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'impersonated_user' => $current,
+                'original_user' => $admin,
+            ],
+            'Impersonation revoked successfully'
+        );
+    }
+
+    // TODO: buat fungsi untuk cek token yang disimpan di redis
+    public function sessionCheck()
+    {
+
     }
 }

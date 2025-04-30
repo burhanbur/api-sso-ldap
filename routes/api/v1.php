@@ -29,7 +29,14 @@ Route::group(['prefix' => 'v1'], function () {
         });
 
         Route::group(['middleware' => ['jwt.auth']], function () {
-            Route::post('refresh', [AuthController::class, 'refreshToken']);        
+            Route::post('refresh', [AuthController::class, 'refreshToken']);
+            Route::post('session-check', [AuthController::class, 'sessionCheck']);
+
+            // TODO: cek apakah role admin SSO yang impersonate atau bukan
+            Route::group(['prefix' => 'impersonate'], function () {
+                Route::post('start/{uuid}', [AuthController::class, 'startImpersonate']);
+                Route::post('leave', [AuthController::class, 'leaveImpersonate']);
+            });
         });
 
         Route::group(['prefix' => 'me', 'middleware' => ['jwt.auth']], function () {
@@ -38,6 +45,7 @@ Route::group(['prefix' => 'v1'], function () {
         });
     });
 
+    // TODO: cek apakah role admin SSO yang impersonate atau bukan
     Route::group(['middleware' => ['jwt.auth']], function () {
         Route::group(['prefix' => 'users'], function () {
             Route::get('/', [UserController::class, 'index']);
