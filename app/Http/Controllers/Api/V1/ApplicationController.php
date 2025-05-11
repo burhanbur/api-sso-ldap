@@ -45,14 +45,33 @@ class ApplicationController extends Controller
             }
 
             // Filter by status
-            if ($status = $request->query('is_active')) {
+            if ($status = $request->query('is_active') == 1 ? true : false) {
                 $query->where('is_active', $status);
             }
 
-            $applications = $query->orderBy('name')->paginate(10);
+            $sortParams = $request->query('sort');
+            if ($sortParams) {
+                $sorts = explode(';', $sortParams);
+                $allowedSortFields = ['created_at', 'name', 'code', 'alias', 'is_active', 'platform_type'];
+    
+                foreach ($sorts as $sort) {
+                    [$field, $direction] = explode(',', $sort) + [null, 'asc'];
+                    $direction = strtolower($direction) === 'desc' ? 'desc' : 'asc';
+    
+                    if (in_array($field, $allowedSortFields)) {
+                        $query->orderBy($field, $direction);
+                    } else {
+                        $query->orderBy('name');
+                    }
+                }
+            } else {
+                $query->orderBy('name');
+            }
+
+            $data = $query->paginate((int) $request->query('limit', 10));
 
             return $this->successResponse(
-                ApplicationResource::collection($applications),
+                ApplicationResource::collection($data),
                 'Applications retrieved successfully'
             );
         } catch (Exception $e) {
@@ -71,7 +90,6 @@ class ApplicationController extends Controller
             'login_url' => 'required|url',
             'platform_type' => 'required|string|in:Web,Mobile,Desktop',
             'visibility' => 'required|string|in:Public,Private,Internal',
-            'is_active' => 'boolean',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
@@ -143,7 +161,6 @@ class ApplicationController extends Controller
             'login_url' => 'required|url',
             'platform_type' => 'required|string|in:Web,Mobile,Desktop',
             'visibility' => 'required|string|in:Public,Private,Internal',
-            'is_active' => 'boolean',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
