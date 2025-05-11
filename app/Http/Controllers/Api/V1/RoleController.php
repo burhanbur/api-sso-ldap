@@ -47,10 +47,29 @@ class RoleController extends Controller
                 $query->where('scope_type_id', $scopeType);
             }
 
-            $roles = $query->orderBy('name')->paginate(10);
+            $sortParams = $request->query('sort');
+            if ($sortParams) {
+                $sorts = explode(';', $sortParams);
+                $allowedSortFields = ['created_at', 'name', 'display_name'];
+    
+                foreach ($sorts as $sort) {
+                    [$field, $direction] = explode(',', $sort) + [null, 'asc'];
+                    $direction = strtolower($direction) === 'desc' ? 'desc' : 'asc';
+    
+                    if (in_array($field, $allowedSortFields)) {
+                        $query->orderBy($field, $direction);
+                    } else {
+                        $query->orderBy('name');
+                    }
+                }
+            } else {
+                $query->orderBy('name');
+            }
+
+            $data = $query->paginate((int) $request->query('limit', 10));
 
             return $this->successResponse(
-                RoleResource::collection($roles),
+                RoleResource::collection($data),
                 'Roles retrieved successfully'
             );
         } catch (Exception $e) {
@@ -64,8 +83,8 @@ class RoleController extends Controller
             'name' => 'required|string|max:255|unique:roles',
             'display_name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'role_type_id' => 'required|exists:role_types,id',
-            'scope_type_id' => 'required|exists:scopes,id'
+            'role_type_id' => 'nullable|exists:role_types,id',
+            'scope_type_id' => 'nullable|exists:scopes,id'
         ]);
 
         if ($validator->fails()) {
@@ -129,8 +148,8 @@ class RoleController extends Controller
             'name' => 'required|string|max:255|unique:roles,name,'.$role->id,
             'display_name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'role_type_id' => 'required|exists:role_types,id',
-            'scope_type_id' => 'required|exists:scopes,id'
+            'role_type_id' => 'nullable|exists:role_types,id',
+            'scope_type_id' => 'nullable|exists:scopes,id'
         ]);
 
         if ($validator->fails()) {
