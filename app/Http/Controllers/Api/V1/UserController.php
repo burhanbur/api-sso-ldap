@@ -50,7 +50,7 @@ class UserController extends Controller
             $sortParams = $request->query('sort');
             if ($sortParams) {
                 $sorts = explode(';', $sortParams);
-                $allowedSortFields = ['created_at', 'full_name', 'username', 'status'];
+                $allowedSortFields = ['created_at', 'full_name', 'code', 'username', 'status'];
     
                 foreach ($sorts as $sort) {
                     [$field, $direction] = explode(',', $sort) + [null, 'asc'];
@@ -58,6 +58,8 @@ class UserController extends Controller
     
                     if (in_array($field, $allowedSortFields)) {
                         $query->orderBy($field, $direction);
+                    } else {
+                        $query->orderBy('full_name');
                     }
                 }
             } else {
