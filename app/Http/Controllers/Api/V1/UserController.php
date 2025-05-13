@@ -16,8 +16,10 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 use App\Models\User;
+use App\Models\UserRole;
 use App\Http\Resources\UserResource;
 use App\Utilities\Ldap;
+use App\Utilities\Utils;
 use App\Traits\ApiResponse;
 
 use Exception;
@@ -118,6 +120,11 @@ class UserController extends Controller
             'join_date' => 'nullable|date',
             'title' => 'nullable|string|max:255',
             'status' => 'nullable|string|in:Aktif,Tidak Aktif',
+            'app_access' => 'nullable|array',
+            'app_access.*.app_id' => 'required|exists:applications,id',
+            'app_access.*.role_id' => 'required|exists:roles,id',
+            'app_access.*.entity_type_id' => 'nullable|exists:entity_types,id',
+            'app_access.*.entity_id' => 'nullable|string|max:255',
         ], [
             'username.unique' => 'Username already exists',
             'password.min' => 'Password must be at least 8 characters',
@@ -125,6 +132,7 @@ class UserController extends Controller
             'email.email' => 'Email must be a valid email address',
             'alt_email.email' => 'Alternate email must be a valid email address',
             'status.in' => 'Status must be either Aktif or Tidak Aktif',
+            'app_access.array' => 'User roles must be provided as an array',
         ]);
 
         if ($validator->fails()) {
@@ -134,17 +142,26 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
-            $params = $validator->validated();
-            $params['uuid'] = Str::uuid();
-            $params['status'] = $params['status'] ?? 'Aktif';
-            $params['join_date'] = $params['join_date'] ?? now()->format('Y-m-d');
-            $params['nickname'] = $params['nickname'] ?? $params['full_name'];
+            $plainPassword = $request->password;
+            $bcryptPassword = bcrypt($request->password);
 
-            $plainPassword = $params['password'];
-            $bcryptPassword = bcrypt($params['password']);
+            $params = [];
+            $params['uuid'] = Str::uuid();
+            $params['username'] = $request->username;
             $params['password'] = $bcryptPassword;
+            $params['code'] = $request->code;
+            $params['full_name'] = $request->full_name;
+            $params['nickname'] = $request->nickname ?? $request->full_name;
+            $params['email'] = $request->email;
+            $params['alt_email'] = $request->alt_email;
+            $params['join_date'] = $request->join_date ?? now()->format('Y-m-d');
+            $params['title'] = $request->title;
+            $params['status'] = $request->status ?? 'Aktif';
 
             $user = User::create($params);
+
+
+
             $sync = Ldap::syncUserFromLdap($user, 'store', $plainPassword);
 
             if (!$sync) {
@@ -185,11 +202,17 @@ class UserController extends Controller
             'join_date' => 'nullable|date',
             'title' => 'nullable|string|max:255',
             'status' => 'nullable|string|in:Aktif,Tidak Aktif',
+            'app_access' => 'nullable|array',
+            'app_access.*.app_id' => 'required|exists:applications,id',
+            'app_access.*.role_id' => 'required|exists:roles,id',
+            'app_access.*.entity_type_id' => 'nullable|exists:entity_types,id',
+            'app_access.*.entity_id' => 'nullable|string|max:255',
         ], [
             'username.unique' => 'Username already exists',
             'email.email' => 'Email must be a valid email address',
             'alt_email.email' => 'Alternate email must be a valid email address',
             'status.in' => 'Status must be either Aktif or Tidak Aktif',
+            'app_access.array' => 'User roles must be provided as an array',
         ]);
 
         if ($validator->fails()) {
@@ -212,6 +235,7 @@ class UserController extends Controller
             ];
 
             $user->update($params);
+            $this->_syncUserAccess($request->app_access, $user);
             $sync = Ldap::syncUserFromLdap($user, 'update');
 
             if (!$sync) {
@@ -230,6 +254,47 @@ class UserController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * Sync user access (roles) with the given user.
+     *
+     * @param array $appAccess
+     * @param User $user
+     * @return void
+     */
+    private function _syncUserAccess(array $appAccess = [], User $user): void
+    {
+        $assignedBy = auth()->user()->id;
+        $now = date('Y-m-d H:i:s');
+
+        foreach ($appAccess as $key => $value) {
+            $access = UserRole::where([
+                'user_id' => $user->id, 
+                'app_id' => $value->app_id, 
+                'role_id' => $value->role_id,
+            ])->first();
+
+            if ($access) {
+                $access->update([
+                    'entity_type_id' => $value->entity_type_id,
+                    'entity_id' => $value->entity_id,
+                    'assign_by' => $assignedBy,
+                    'assign_at' => $now,
+                ]);
+            } else {
+                UserRole::create([
+                    'uuid' => Str::uuid(),
+                    'user_id' => $user->id,
+                    'role_id' => $value->role_id,
+                    'app_id' => $value->app_id,
+                    'entity_type_id' => $value->entity_type_id,
+                    'entity_id' => $value->entity_id,
+                    'assign_by' => $assignedBy,
+                    'assign_at' => $now,
+                ]);
+            }
+        }
     }
 
     public function updateStatus(Request $request, $uuid)
@@ -278,6 +343,11 @@ class UserController extends Controller
         }
 
         return $response;
+    }
+    
+    public function generateUsername(Request $request)
+    {
+
     }
 
     public function userLdap()

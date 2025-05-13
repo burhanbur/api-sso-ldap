@@ -33,14 +33,17 @@ class UserResource extends JsonResource
                         $first = $roles->first();
         
                         return [
+                            'uuid' => $first->application->uuid ?? null,
                             'code' => $first->application->code ?? null,
                             'name' => $first->application->name ?? null,
                             'base_url'  => $first->application->base_url ?? null,
                             'roles' => $roles->map(function ($role) {
                                 return [
+                                    'uuid' => $role->role->uuid ?? null,
                                     'code' => $role->role->name ?? null,
                                     'name' => $role->role->display_name ?? null,
                                     'entity' => [
+                                        'uuid' => $role->entityType->uuid ?? null,
                                         'type' => $role->entityType->code ?? null,
                                         'id' => $role->entity_id,
                                     ],
