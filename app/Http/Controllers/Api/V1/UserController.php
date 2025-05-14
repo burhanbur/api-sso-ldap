@@ -159,9 +159,7 @@ class UserController extends Controller
             $params['status'] = $request->status ?? 'Aktif';
 
             $user = User::create($params);
-
-
-
+            $this->_syncUserAccess($user, $request->app_access);
             $sync = Ldap::syncUserFromLdap($user, 'store', $plainPassword);
 
             if (!$sync) {
@@ -235,7 +233,7 @@ class UserController extends Controller
             ];
 
             $user->update($params);
-            $this->_syncUserAccess($request->app_access, $user);
+            $this->_syncUserAccess($user, $request->app_access);
             $sync = Ldap::syncUserFromLdap($user, 'update');
 
             if (!$sync) {
@@ -259,43 +257,63 @@ class UserController extends Controller
     /**
      * Sync user access (roles) with the given user.
      *
-     * @param array $appAccess
      * @param User $user
+     * @param array $appAccess
      * @return void
      */
-    private function _syncUserAccess(array $appAccess = [], User $user): void
+    private function _syncUserAccess(User $user, array $appAccess = []): void
     {
-        $assignedBy = auth()->user()->id;
-        $now = date('Y-m-d H:i:s');
+        $assignedBy = auth()->id();
+        $now = now();
 
-        foreach ($appAccess as $key => $value) {
-            $access = UserRole::where([
-                'user_id' => $user->id, 
-                'app_id' => $value->app_id, 
-                'role_id' => $value->role_id,
-            ])->first();
+        // Ambil semua akses lama yang dimiliki user
+        $existingAccess = UserRole::where('user_id', $user->id)->get();
+
+        // Siapkan key untuk membandingkan data baru vs lama
+        $incomingKeys = [];
+
+        foreach ($appAccess as $value) {
+            $key = $value['app_id'] . '-' . $value['role_id'];
+            $incomingKeys[] = $key;
+
+            $access = $existingAccess->firstWhere(fn ($item) =>
+                $item->app_id == $value['app_id'] &&
+                $item->role_id == $value['role_id']
+            );
 
             if ($access) {
+                // Update jika sudah ada
                 $access->update([
-                    'entity_type_id' => $value->entity_type_id,
-                    'entity_id' => $value->entity_id,
+                    'entity_type_id' => $value['entity_type_id'],
+                    'entity_id' => $value['entity_id'],
                     'assign_by' => $assignedBy,
                     'assign_at' => $now,
                 ]);
             } else {
+                // Create jika tidak ada
                 UserRole::create([
                     'uuid' => Str::uuid(),
                     'user_id' => $user->id,
-                    'role_id' => $value->role_id,
-                    'app_id' => $value->app_id,
-                    'entity_type_id' => $value->entity_type_id,
-                    'entity_id' => $value->entity_id,
+                    'role_id' => $value['role_id'],
+                    'app_id' => $value['app_id'],
+                    'entity_type_id' => $value['entity_type_id'],
+                    'entity_id' => $value['entity_id'],
                     'assign_by' => $assignedBy,
                     'assign_at' => $now,
                 ]);
             }
         }
+
+        // Hapus akses lama yang tidak ada di data baru
+        foreach ($existingAccess as $oldAccess) {
+            $key = $oldAccess->app_id . '-' . $oldAccess->role_id;
+
+            if (!in_array($key, $incomingKeys)) {
+                $oldAccess->delete();
+            }
+        }
     }
+
 
     public function updateStatus(Request $request, $uuid)
     {
@@ -347,7 +365,15 @@ class UserController extends Controller
     
     public function generateUsername(Request $request)
     {
+        $name = $request->name;
 
+        $utils = new Utils;
+        $username = $utils->generateUsername($name);
+
+        return $this->successResponse(
+            $username,
+            'Username generated successfully'
+        );
     }
 
     public function userLdap()

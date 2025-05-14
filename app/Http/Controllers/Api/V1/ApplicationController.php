@@ -89,8 +89,8 @@ class ApplicationController extends Controller
             'base_url' => 'required|url',
             'login_url' => 'required|url',
             'platform_type' => 'required|string|in:Web,Mobile,Desktop',
-            'visibility' => 'required|string|in:Public,Private,Internal',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+            'visibility' => 'required|string|in:Public,Internal',
+            // 'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -160,8 +160,7 @@ class ApplicationController extends Controller
             'base_url' => 'required|url',
             'login_url' => 'required|url',
             'platform_type' => 'required|string|in:Web,Mobile,Desktop',
-            'visibility' => 'required|string|in:Public,Private,Internal',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+            'visibility' => 'required|string|in:Public,Internal',
         ]);
 
         if ($validator->fails()) {

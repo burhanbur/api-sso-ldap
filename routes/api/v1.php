@@ -49,6 +49,7 @@ Route::group(['prefix' => 'v1'], function () {
     Route::group(['middleware' => ['jwt.auth']], function () {
         Route::group(['prefix' => 'users'], function () {
             Route::get('/', [UserController::class, 'index']);
+            Route::post('/generate-username', [UserController::class, 'generateUsername']);
             Route::get('/{uuid}', [UserController::class, 'show']);
             Route::post('/', [UserController::class, 'store']);
             Route::put('/{uuid}', [UserController::class, 'update']);
