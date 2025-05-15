@@ -21,6 +21,9 @@ use App\Http\Resources\UserResource;
 use App\Utilities\Ldap;
 use App\Utilities\Utils;
 use App\Traits\ApiResponse;
+use App\Imports\ReadExcelImport;
+
+use Maatwebsite\Excel\Facades\Excel;
 
 use Exception;
 
@@ -314,7 +317,6 @@ class UserController extends Controller
         }
     }
 
-
     public function updateStatus(Request $request, $uuid)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -374,6 +376,74 @@ class UserController extends Controller
             $username,
             'Username generated successfully'
         );
+    }
+
+    public function import(Request $request) 
+    {
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|file|mimes:xlsx,xls'
+        ]);
+
+        if ($validator->fails()) {
+            $this->errorResponse($validator->errors(), 422);
+        }
+
+        try {
+            $path = $request->file('files')->store('temp');
+            $realPath = storage_path('app') . '/' . $path;
+            $rows = (Excel::toArray(new ReadExcelImport, $realPath)[0]) ?? [];
+            $utils = new Utils;
+
+            foreach ($rows as $key => $data) {
+                $full_name = $data[0];
+                $username = $utils->generateUsername($data[0]);
+                $password = $data[1];
+                $code = $data[2];
+                $email = $data[3];
+                $nickname = @$data[4];
+                $alt_email = @$data[5];
+                $join_date = @$data[6];
+                $title = @$data[7];
+                $status = 'Aktif';
+
+                if (empty($full_name) || empty($username) || empty($password) || empty($code) || empty($email)) {
+                    continue;
+                }
+                
+                DB::beginTransaction();
+
+                try {
+                    $plainPassword = $password;
+                    $bcryptPassword = bcrypt($password);
+
+                    $params = [];
+                    $params['uuid'] = Str::uuid();
+                    $params['username'] = $username;
+                    $params['password'] = $bcryptPassword;
+                    $params['code'] = $code;
+                    $params['full_name'] = $full_name;
+                    $params['nickname'] = $nickname ?? $full_name;
+                    $params['email'] = $email;
+                    $params['alt_email'] = $alt_email;
+                    $params['join_date'] = $join_date ? date('Y-m-d', strtotime($join_date)) : now()->format('Y-m-d');
+                    $params['title'] = $title;
+                    $params['status'] = $status;
+
+                    $user = User::create($params);
+                    $this->_syncUserAccess($user, $request->app_access);
+                    $sync = Ldap::syncUserFromLdap($user, 'store', $plainPassword);
+                } catch (Exception $exLoop) {
+                    DB::rollback();
+                }
+            }
+
+            return $this->successResponse(
+                null,
+                'User data imported successfully'
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
     }
 
     public function userLdap()

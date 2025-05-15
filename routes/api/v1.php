@@ -52,6 +52,7 @@ Route::group(['prefix' => 'v1'], function () {
             Route::post('/generate-username', [UserController::class, 'generateUsername']);
             Route::get('/{uuid}', [UserController::class, 'show']);
             Route::post('/', [UserController::class, 'store']);
+            Route::post('/import', [UserController::class, 'import']);
             Route::put('/{uuid}', [UserController::class, 'update']);
             Route::put('/{uuid}/status', [UserController::class, 'updateStatus']);
         });
