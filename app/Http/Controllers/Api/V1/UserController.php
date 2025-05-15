@@ -263,7 +263,7 @@ class UserController extends Controller
      */
     private function _syncUserAccess(User $user, array $appAccess = []): void
     {
-        $assignedBy = auth()->id();
+        $assignedBy = auth()->user()->id;
         $now = now();
 
         // Ambil semua akses lama yang dimiliki user
@@ -286,8 +286,8 @@ class UserController extends Controller
                 $access->update([
                     'entity_type_id' => $value['entity_type_id'],
                     'entity_id' => $value['entity_id'],
-                    'assign_by' => $assignedBy,
-                    'assign_at' => $now,
+                    'assigned_by' => $assignedBy,
+                    'assigned_at' => $now,
                 ]);
             } else {
                 // Create jika tidak ada
@@ -298,8 +298,8 @@ class UserController extends Controller
                     'app_id' => $value['app_id'],
                     'entity_type_id' => $value['entity_type_id'],
                     'entity_id' => $value['entity_id'],
-                    'assign_by' => $assignedBy,
-                    'assign_at' => $now,
+                    'assigned_by' => $assignedBy,
+                    'assigned_at' => $now,
                 ]);
             }
         }

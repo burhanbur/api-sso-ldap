@@ -76,6 +76,7 @@ Route::group(['prefix' => 'v1'], function () {
         
         Route::group(['prefix' => 'applications'], function () {
             Route::get('/', [ApplicationController::class, 'index']);
+            Route::get('/{uuid}/users', [ApplicationController::class, 'showUserApplication']);
             Route::get('/{uuid}', [ApplicationController::class, 'show']);
             Route::post('/', [ApplicationController::class, 'store']);
             Route::put('/{uuid}', [ApplicationController::class, 'update']);

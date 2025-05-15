@@ -122,12 +122,22 @@ class UserRoleController extends Controller
                 return $this->errorResponse('User role not found', 404);
             }
 
+            $appId = $userRole->app_id;
             $userRole->delete();
+
+            $data = UserRole::join('users', 'users.id', '=', 'user_roles.user_id')
+                ->join('applications', 'applications.id', '=', 'user_roles.app_id')
+                ->join('roles', 'roles.id', '=', 'user_roles.role_id')
+                ->where('applications.id', $appId)
+                ->select('users.id', 'users.code', 'users.full_name', 'users.username', 'roles.display_name as role', 'user_roles.uuid')
+                ->distinct()
+                ->orderBy('users.full_name', 'asc')
+                ->get();
 
             DB::commit();
 
             return $this->successResponse(
-                null,
+                $data,
                 'User role revoked successfully'
             );
         } catch (Exception $e) {

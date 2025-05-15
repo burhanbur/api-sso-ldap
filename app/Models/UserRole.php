@@ -11,7 +11,7 @@ class UserRole extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid', 'user_id', 'role_id', 'app_id', 'entity_type_id', 'entity_id', 'assigned_by', 'assigned_at'
+        'uuid', 'user_id', 'role_id', 'app_id', 'entity_type_id', 'entity_id', 'assigned_by', 'assigned_at', 'created_at', 'updated_at'
     ];
 
     public function user()

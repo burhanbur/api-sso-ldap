@@ -16,7 +16,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 use App\Models\Application;
+use App\Models\UserRole;
 use App\Http\Resources\ApplicationResource;
+use App\Http\Resources\UserAppResource;
 use App\Traits\ApiResponse;
 
 use Exception;
@@ -255,6 +257,36 @@ class ApplicationController extends Controller
             );
         } catch (Exception $e) {
             DB::rollBack();
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function showUserApplication(Request $request, $uuid)
+    {
+        try {
+            $query = UserRole::distinct()
+                ->select('user_roles.id', 'users.code', 'users.full_name', 'users.username', 'roles.display_name as role', 'user_roles.uuid', 'user_roles.assigned_at', 'user_roles.assigned_by', 'user_roles.created_at', 'user_roles.updated_at')
+                ->join('users', 'users.id', '=', 'user_roles.user_id')
+                ->join('applications', 'applications.id', '=', 'user_roles.app_id')
+                ->join('roles', 'roles.id', '=', 'user_roles.role_id')
+                ->where('applications.uuid', $uuid);
+
+            if ($search = $request->query('search')) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('users.username', 'ilike', "%$search%")
+                      ->orWhere('users.full_name', 'ilike', "%$search%")
+                      ->orWhere('users.code', 'ilike', "%$search%")
+                      ->orWhere('roles.display_name', 'ilike', "%$search%");
+                });
+            }
+            
+            $data = $query->orderBy('users.full_name', 'asc')->orderBy('roles.display_name', 'asc')->get();
+
+            return $this->successResponse(
+                UserAppResource::collection($data),
+                'User applications retrieved successfully'
+            );
+        } catch (Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
