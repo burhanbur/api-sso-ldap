@@ -269,10 +269,8 @@ class UserController extends Controller
         $assignedBy = auth()->user()->id;
         $now = now();
 
-        // Ambil semua akses lama yang dimiliki user
         $existingAccess = UserRole::where('user_id', $user->id)->get();
 
-        // Siapkan key untuk membandingkan data baru vs lama
         $incomingKeys = [];
 
         foreach ($appAccess as $value) {
@@ -285,7 +283,6 @@ class UserController extends Controller
             );
 
             if ($access) {
-                // Update jika sudah ada
                 $access->update([
                     'entity_type_id' => $value['entity_type_id'],
                     'entity_id' => $value['entity_id'],
@@ -293,7 +290,6 @@ class UserController extends Controller
                     'assigned_at' => $now,
                 ]);
             } else {
-                // Create jika tidak ada
                 UserRole::create([
                     'uuid' => Str::uuid(),
                     'user_id' => $user->id,
@@ -307,7 +303,6 @@ class UserController extends Controller
             }
         }
 
-        // Hapus akses lama yang tidak ada di data baru
         foreach ($existingAccess as $oldAccess) {
             $key = $oldAccess->app_id . '-' . $oldAccess->role_id;
 
@@ -389,8 +384,7 @@ class UserController extends Controller
         }
 
         try {
-            $path = $request->file('files')->store('temp');
-            $realPath = storage_path('app') . '/' . $path;
+            $realPath = $request->file('file');
             $rows = (Excel::toArray(new ReadExcelImport, $realPath)[0]) ?? [];
             $utils = new Utils;
 
@@ -430,8 +424,15 @@ class UserController extends Controller
                     $params['status'] = $status;
 
                     $user = User::create($params);
-                    $this->_syncUserAccess($user, $request->app_access);
+
+                    if (!$user) {
+                        throw new Exception('Failed to create user');
+                    }
+                    
+                    $this->_syncUserAccess($user, []);
                     $sync = Ldap::syncUserFromLdap($user, 'store', $plainPassword);
+
+                    DB::commit();
                 } catch (Exception $exLoop) {
                     DB::rollback();
                 }

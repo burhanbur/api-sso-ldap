@@ -42,6 +42,10 @@ class AuthController extends Controller
             return $this->errorResponse('User not registered', 401);
         }
 
+        if ($user->status != 'Aktif') {
+            return $this->errorResponse('Cannot login because user account status is inactive', 401);
+        }
+
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
@@ -387,7 +391,7 @@ class AuthController extends Controller
     }
 
     // TODO: buat fungsi untuk cek token yang disimpan di redis
-    public function sessionCheck()
+    public function checkSession()
     {
 
     }

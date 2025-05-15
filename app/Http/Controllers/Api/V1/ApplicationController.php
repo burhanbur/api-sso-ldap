@@ -290,4 +290,27 @@ class ApplicationController extends Controller
             return $this->errorResponse($e->getMessage());
         }
     }
+
+    public function myApplication(Request $request) 
+    {
+        $user = auth()->user();
+
+        try {
+            $query = Application::distinct()
+                ->select('applications.*')
+                ->join('user_roles', 'applications.id', '=', 'user_roles.app_id')
+                ->join('users', 'users.id', '=', 'user_roles.user_id')
+                ->join('roles', 'roles.id', '=', 'user_roles.role_id')
+                ->where('user_roles.user_id', $user->id);
+            
+            $data = $query->orderBy('applications.name', 'asc')->get();
+
+            return $this->successResponse(
+                ApplicationResource::collection($data),
+                'My applications retrieved successfully'
+            );
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
+    }
 }

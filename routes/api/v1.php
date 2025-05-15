@@ -19,6 +19,8 @@ Route::group(['prefix' => 'v1'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('ldap', [UserController::class, 'userLdap']);
 
+        Route::get('session', [AuthController::class, 'checkSession']);
+
         Route::group(['prefix' => 'password'], function () {
             Route::post('forgot', [AuthController::class, 'forgotPassword']);
             Route::post('reset', [AuthController::class, 'resetPassword']);
@@ -30,7 +32,6 @@ Route::group(['prefix' => 'v1'], function () {
 
         Route::group(['middleware' => ['jwt.auth']], function () {
             Route::post('refresh', [AuthController::class, 'refreshToken']);
-            Route::post('session-check', [AuthController::class, 'sessionCheck']);
 
             // TODO: cek apakah role admin SSO yang impersonate atau bukan
             Route::group(['prefix' => 'impersonate'], function () {
@@ -41,6 +42,7 @@ Route::group(['prefix' => 'v1'], function () {
 
         Route::group(['prefix' => 'me', 'middleware' => ['jwt.auth']], function () {
             Route::get('/', [AuthController::class, 'me']);
+            Route::get('applications', [ApplicationController::class, 'myApplication']);
             Route::post('password/change', [AuthController::class, 'changeMyPassword']);
         });
     });
@@ -49,12 +51,13 @@ Route::group(['prefix' => 'v1'], function () {
     Route::group(['middleware' => ['jwt.auth']], function () {
         Route::group(['prefix' => 'users'], function () {
             Route::get('/', [UserController::class, 'index']);
-            Route::post('/generate-username', [UserController::class, 'generateUsername']);
             Route::get('/{uuid}', [UserController::class, 'show']);
             Route::post('/', [UserController::class, 'store']);
-            Route::post('/import', [UserController::class, 'import']);
             Route::put('/{uuid}', [UserController::class, 'update']);
             Route::put('/{uuid}/status', [UserController::class, 'updateStatus']);
+
+            Route::post('generate-username', [UserController::class, 'generateUsername']);
+            Route::post('import', [UserController::class, 'import']);
         });
         
         Route::get('scopes', [ScopeController::class, 'index']);
