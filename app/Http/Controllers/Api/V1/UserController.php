@@ -373,6 +373,61 @@ class UserController extends Controller
         );
     }
 
+    public function updateMyProfile(Request $request)
+    {
+        $response = $this->errorResponse($this->errMessage);
+
+        $user = auth()->user();
+
+        if (!$user) {
+            return $this->errorResponse('User not found', 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:255',
+            'nickname' => 'nullable|string|max:255',
+            'email' => 'nullable|email',
+            'alt_email' => 'nullable|email',
+        ], [
+            'email.email' => 'Email must be a valid email address',
+            'alt_email.email' => 'Alternate email must be a valid email address',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors(), 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $params = [
+                'full_name' => $request->input('full_name') ?? $user->full_name,
+                'nickname' => $request->input('nickname') ?? $user->nickname,
+                'email' => $request->input('email') ?? $user->email,
+                'alt_email' => $request->input('alt_email') ?? $user->alt_email,
+            ];
+
+            $user->update($params);
+            $sync = Ldap::syncUserFromLdap($user, 'update');
+
+            if (!$sync) {
+                return $this->errorResponse('Failed to sync user from LDAP', 500);
+            }
+
+            DB::commit();
+
+            $response = $this->successResponse(
+                new UserResource($user),
+                'User updated successfully'
+            );
+        } catch (Exception $ex) {
+            DB::rollBack();
+            $response = $this->errorResponse($ex->getMessage(), 500);
+        }
+
+        return $response;
+    }
+
     public function import(Request $request) 
     {
         $validator = Validator::make($request->all(), [

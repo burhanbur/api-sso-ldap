@@ -33,7 +33,7 @@ class AuthController extends Controller
         $credentials = $request->only('username', 'password');
 
         if (!Ldap::bind($credentials['username'], $credentials['password'])) {
-            return $this->errorResponse('Invalid credentials', 401);
+            return $this->errorResponse('Username or password is incorrect', 401);
         }
 
         $user = User::where('username', $credentials['username'])->first();
