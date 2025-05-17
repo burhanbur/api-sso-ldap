@@ -20,6 +20,13 @@ Route::group(['prefix' => 'v1'], function () {
         Route::get('ldap', [UserController::class, 'userLdap']);
 
         Route::get('session', [AuthController::class, 'checkSession']);
+        Route::post('callback', [AuthController::class, 'callback']);
+
+        Route::group(['prefix' => 'devices'], function () {
+            Route::get('active', [AuthController::class, 'getActiveDevices']);
+            Route::get('active/impersonate', [AuthController::class, 'getActiveImpersonations']);
+            Route::post('logout', [AuthController::class, 'logoutAllDevices']);
+        });
 
         Route::group(['prefix' => 'password'], function () {
             Route::post('forgot', [AuthController::class, 'forgotPassword']);
@@ -30,9 +37,11 @@ Route::group(['prefix' => 'v1'], function () {
             });
         });
 
-        Route::group(['middleware' => ['jwt.auth']], function () {
+        Route::group(['middleware' => ['jwt.refresh']], function () {
             Route::post('refresh', [AuthController::class, 'refreshToken']);
+        });
 
+        Route::group(['middleware' => ['jwt.auth']], function () {
             // TODO: cek apakah role admin SSO yang impersonate atau bukan
             Route::group(['prefix' => 'impersonate'], function () {
                 Route::post('start/{uuid}', [AuthController::class, 'startImpersonate']);

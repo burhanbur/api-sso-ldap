@@ -13,14 +13,19 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
-use App\Models\User;
 use App\Http\Resources\UserResource;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use App\Utilities\Ldap;
+use App\Models\User;
 use App\Traits\ApiResponse;
+use App\Utilities\Ldap;
+use App\Utilities\Utils;
+
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 use Exception;
 
@@ -28,6 +33,12 @@ class AuthController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * Handle a login request for the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function login(Request $request)
     {
         $credentials = $request->only('username', 'password');
@@ -47,18 +58,33 @@ class AuthController extends Controller
         }
 
         $token = JWTAuth::fromUser($user);
+        $expiredIn = JWTAuth::factory()->getTTL() * 60;
+
+        Utils::getInstance()->storeTokenInRedis($user->uuid, $token);
 
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => JWTAuth::factory()->getTTL() * 60
+            'expires_in' => $expiredIn,
+            'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
         ]);
     }
 
+    /**
+     * Invalidate the user's token and log out the user.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function logout(Request $request)
     {
         try {
-            JWTAuth::invalidate(JWTAuth::getToken());
+            $user = JWTAuth::parseToken()->authenticate();
+            $token = JWTAuth::getToken();
+
+            Utils::getInstance()->removeTokenFromRedis($user->uuid, $token->get());
+
+            JWTAuth::invalidate($token);
 
             return $this->successResponse(
                 null,
@@ -69,6 +95,12 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Send a password reset link to the given email address
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function forgotPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -119,6 +151,12 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Resets the user's password based on the given token
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -183,6 +221,13 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Change the current user's password
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    
     public function changeMyPassword(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -242,6 +287,12 @@ class AuthController extends Controller
         return $response;
     }
 
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function changeUserPassword(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -298,30 +349,39 @@ class AuthController extends Controller
         return $response;
     }
 
+    /**
+     * Refresh JWT token.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function refreshToken()
     {
         try {
-            $token = JWTAuth::parseToken();
-            
-            // Get the current token's claims
-            $payload = $token->getPayload();
-            $user = auth()->user();
-            
-            // Invalidate old token
-            $token->invalidate();
-            
-            // Generate new token
-            $newToken = JWTAuth::fromUser($user);
+            $oldToken = JWTAuth::getToken();
+            $oldTokenString = $oldToken->get();
+            $user = JWTAuth::parseToken()->authenticate();
+            $newToken = JWTAuth::refresh($oldToken);
+            $expiredIn = JWTAuth::factory()->getTTL() * 60;
+
+            Utils::getInstance()->removeTokenFromRedis($user->uuid, $oldTokenString);
+            Utils::getInstance()->storeTokenInRedis($user->uuid, $newToken);
             
             return response()->json([
                 'access_token' => $newToken,
                 'token_type' => 'bearer',
-                'expires_in' => auth('api')->factory()->getTTL() * 60,
+                'expires_in' => $expiredIn,
+                'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
             ]);
         } catch (Exception $e) {
             return $this->errorResponse('Could not refresh token', 401);
         }
     }
+
+    /**
+     * Retrieve the authenticated user's data along with their roles, applications, and entity types.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
 
     public function me()
     {
@@ -333,6 +393,13 @@ class AuthController extends Controller
         );
     }
 
+    /**
+     * Start impersonating a user.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $uuid
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function startImpersonate(Request $request, $uuid)
     {
         $admin = auth()->user();
@@ -348,22 +415,46 @@ class AuthController extends Controller
 
         $target->setCustomClaims(['impersonated_by' => $admin->uuid]);
         $token = JWTAuth::fromUser($target);
+        $ttl = JWTAuth::factory()->getTTL() * 60;
+
+        // Simpan detail token dengan informasi impersonasi
+        Redis::setex("token_details:{$token}", $ttl, json_encode([
+            'uuid' => $target->uuid,
+            'created_at' => now()->timestamp,
+            'impersonated_by' => $admin->uuid,
+            'is_impersonation' => true
+        ]));
+        
+        // Simpan mapping token ke user
+        Redis::setex("token_to_user:{$token}", $ttl, $target->uuid);
+        
+        // Tambahkan token ke sorted set dengan score = timestamp expired
+        $expiresAt = now()->addSeconds($ttl)->timestamp;
+        Redis::zadd("user_tokens:{$target->uuid}", $expiresAt, $token);
 
         return $this->successResponse(
             [
                 'access_token' => $token,
                 'token_type' => 'bearer',
-                'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'expires_in' => $ttl,
+                'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
                 'impersonated_user' => $target,
             ],
             'Impersonation successfully'
         );
     }
 
+    /**
+     * Leave impersonation.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function leaveImpersonate(Request $request)
     {
         $current = auth()->user();
         $originalAdminUuid = JWTAuth::getPayload()->get('impersonated_by');
+        $token = JWTAuth::getToken()->get();
 
         if (!$originalAdminUuid) {
             return $this->errorResponse('Not impersonating any user', 403);
@@ -375,14 +466,17 @@ class AuthController extends Controller
             return $this->errorResponse('User not found', 404);
         }
 
+        Utils::getInstance()->removeTokenFromRedis($current->uuid, $token);
         JWTAuth::invalidate(JWTAuth::getToken());
-        $token = JWTAuth::fromUser($admin);
+        $adminToken = JWTAuth::fromUser($admin);
+        Utils::getInstance()->storeTokenInRedis($admin->uuid, $adminToken);
 
         return $this->successResponse(
             [
-                'access_token' => $token,
+                'access_token' => $adminToken,
                 'token_type' => 'bearer',
                 'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
                 'impersonated_user' => $current,
                 'original_user' => $admin,
             ],
@@ -390,9 +484,259 @@ class AuthController extends Controller
         );
     }
 
-    // TODO: buat fungsi untuk cek token yang disimpan di redis
+    /**
+     * Check if the session is valid.
+     *
+     * This endpoint checks if the token in the Authorization header is valid and matches the one stored in Redis.
+     * If the token is invalid or does not match the one in Redis, a 401 Unauthorized response is returned.
+     * If the token is valid, a 200 OK response with the user's data is returned.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function checkSession()
     {
+        try {
+            $token = JWTAuth::getToken()->get();
+            $user = JWTAuth::parseToken()->authenticate();
+            $now = now()->timestamp;
 
+            // Periksa token di sorted set dengan memastikan skornya masih valid
+            $expiryTime = Redis::zscore("user_tokens:{$user->uuid}", $token);
+            
+            if (!$expiryTime || $expiryTime < $now) {
+                // Token tidak ditemukan atau sudah expired
+                return $this->errorResponse('Session invalid or expired', 401);
+            }
+            
+            return $this->successResponse(
+                new UserResource($user), 
+                'Session check successful'
+            );
+        } catch (Exception $ex) {
+            return $this->errorResponse('Session check failed: ' . $ex->getMessage(), 401);
+        }
+    }
+
+    /**
+     * Log out the user from all devices except the current one.
+     *
+     * This method invalidates all tokens associated with the user except the current session token.
+     * It retrieves all valid tokens associated with the user and invalidates each one by one.
+     * Expired tokens are cleaned before the process.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function logoutAllDevices(Request $request)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $currentToken = JWTAuth::getToken()->get();
+            
+            // Bersihkan token yang sudah expired
+            Utils::getInstance()->cleanExpiredTokens($user->uuid);
+            
+            // Ambil semua token user yang masih valid
+            $now = now()->timestamp;
+            $tokens = Redis::zrangebyscore("user_tokens:{$user->uuid}", $now, '+inf');
+            
+            // Invalidate semua token kecuali yang sedang digunakan
+            foreach ($tokens as $token) {
+                if ($token !== $currentToken) {
+                    try {
+                        JWTAuth::setToken($token)->invalidate();
+                        Utils::getInstance()->removeTokenFromRedis($user->uuid, $token);
+                    } catch (Exception $e) {
+                        // Abaikan error jika token sudah tidak valid
+                    }
+                }
+            }
+            
+            return $this->successResponse(
+                null,
+                'Logged out from all other devices successfully'
+            );
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Retrieves all active sessions for the current user.
+     *
+     * This API retrieves all valid tokens associated with the user and decodes each token to get the creation and expiration timestamps.
+     * It also checks if the token is an impersonation token and adds the admin user's name to the response.
+     * The response will include the total number of active sessions and an array of sessions, each containing the token, creation and expiration timestamps,
+     * and a flag indicating if the session is the current active session.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getActiveDevices(Request $request)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $now = now()->timestamp;
+            
+            // Bersihkan token yang sudah expired
+            Utils::getInstance()->cleanExpiredTokens($user->uuid);
+            
+            // Ambil hanya token yang masih valid
+            $tokens = Redis::zrangebyscore("user_tokens:{$user->uuid}", $now, '+inf');
+            
+            $sessions = [];
+            foreach ($tokens as $token) {
+                $details = Redis::get("token_details:{$token}");
+                if ($details) {
+                    $details = json_decode($details, true);
+                    $session = [
+                        // 'token' => substr($token, 0, 10) . '...', // Hanya tampilkan sebagian token
+                        'token' => $token,
+                        'created_at' => Carbon::createFromTimestamp($details['created_at'])->format('Y-m-d H:i:s'),
+                        'expires_at' => Carbon::createFromTimestamp(Redis::zscore("user_tokens:{$user->uuid}", $token))->format('Y-m-d H:i:s')
+                    ];
+                    
+                    // Tambahkan info impersonasi jika ada
+                    if (isset($details['is_impersonation']) && $details['is_impersonation']) {
+                        $adminUser = User::where('uuid', $details['impersonated_by'])->first();
+                        $session['is_impersonation'] = true;
+                        $session['impersonated_by'] = $adminUser ? $adminUser->name : 'Unknown Admin';
+                    }
+                    
+                    // Tandai sesi yang sedang aktif
+                    $session['is_current'] = JWTAuth::getToken()->get() === $token;
+                    
+                    $sessions[] = $session;
+                }
+            }
+            
+            return $this->successResponse(
+                [
+                    'active_sessions' => count($sessions),
+                    'sessions' => $sessions,
+                ],
+                'Active devices retrieved successfully'
+            );
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Retrieves all active impersonation sessions initiated by the current admin.
+     *
+     * This method fetches all active user sessions from Redis and filters 
+     * them to identify sessions that are impersonations initiated by the 
+     * currently authenticated admin. It checks if tokens are still valid 
+     * and retrieves the associated user details.
+     *
+     * The response includes the total number of active impersonations 
+     * and an array of impersonation details, each containing user information,
+     * session start and expiration timestamps.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+
+    public function getActiveImpersonations(Request $request)
+    {
+        try {
+            $admin = auth()->user();
+            $now = now()->timestamp;
+            
+            // Ambil semua sesi user
+            $allTokens = Redis::keys("token_details:*");
+            $activeImpersonations = [];
+            
+            foreach ($allTokens as $tokenKey) {
+                $details = Redis::get($tokenKey);
+                if ($details) {
+                    $details = json_decode($details, true);
+                    
+                    // Periksa apakah ini adalah sesi impersonasi yang dilakukan oleh admin ini
+                    if (isset($details['is_impersonation']) && 
+                        $details['is_impersonation'] &&
+                        $details['impersonated_by'] === $admin->uuid) {
+                        
+                        // Ekstrak token dari key
+                        $token = str_replace("token_details:", "", $tokenKey);
+                        
+                        // Periksa apakah token masih valid
+                        $userUuid = $details['uuid'];
+                        $expiryTime = Redis::zscore("user_tokens:{$userUuid}", $token);
+                        
+                        if ($expiryTime && $expiryTime > $now) {
+                            $user = User::where('uuid', $userUuid)->first();
+                            
+                            if ($user) {
+                                $activeImpersonations[] = [
+                                    'user' => [
+                                        'uuid' => $user->uuid,
+                                        'name' => $user->name,
+                                        'username' => $user->username
+                                    ],
+                                    'started_at' => Carbon::createFromTimestamp($details['created_at'])->format('Y-m-d H:i:s'),
+                                    'expires_at' => Carbon::createFromTimestamp($expiryTime)->format('Y-m-d H:i:s')
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return $this->successResponse(
+                [
+                    'active_impersonations' => count($activeImpersonations),
+                    'impersonations' => $activeImpersonations
+                ],
+                'Active impersonations retrieved successfully'
+            );
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Callback endpoint for the client application.
+     *
+     * This endpoint is used by the client application to validate the token and get the user information.
+     * The token is validated by checking if it exists in Redis and matches the one stored in Redis.
+     * If the token is invalid or does not match the one in Redis, a 401 Unauthorized response is returned.
+     * If the token is valid, a 200 OK response with the user's data is returned.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function callback(Request $request)
+    {
+        try {
+            $token = $request->input('token');
+            if (!$token) {
+                return $this->errorResponse('Token is required', 400);
+            }
+            
+            // Validate token
+            JWTAuth::setToken($token);
+            $user = JWTAuth::parseToken()->authenticate();
+            
+            // Check if token exists in Redis
+            $redisToken = Redis::get(`user_token:{$user->uuid}`);
+            if (!$redisToken || $redisToken !== $token) {
+                return $this->errorResponse('Invalid token', 401);
+            }
+            
+            // Return user information for the client application
+            return $this->successResponse(
+                [
+                    'user' => $user,
+                    'access_token' => $token,
+                    'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                    'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
+                ], 
+                'Callback successful'
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse('Callback failed: ' . $e->getMessage(), 500);
+        }
     }
 }

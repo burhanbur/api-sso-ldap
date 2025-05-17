@@ -363,9 +363,10 @@ class UserController extends Controller
     public function generateUsername(Request $request)
     {
         $name = $request->name;
+        $type = $request->type ?? 'staff';
 
         $utils = new Utils;
-        $username = $utils->generateUsername($name);
+        $username = $utils->generateUsername($name, $type);
 
         return $this->successResponse(
             $username,
