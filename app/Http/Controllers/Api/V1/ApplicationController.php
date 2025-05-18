@@ -104,6 +104,7 @@ class ApplicationController extends Controller
 
             $params = $validator->validated();
             $params['uuid'] = Str::uuid();
+            $params['code'] = strtolower($params['code']);
 
             // Handle image upload
             if ($request->hasFile('image')) {
@@ -173,6 +174,7 @@ class ApplicationController extends Controller
             DB::beginTransaction();
 
             $params = $validator->validated();
+            $params['code'] = strtolower($params['code']);
 
             // Handle image upload
             if ($request->hasFile('image')) {
@@ -301,6 +303,9 @@ class ApplicationController extends Controller
                 ->join('user_roles', 'applications.id', '=', 'user_roles.app_id')
                 ->join('users', 'users.id', '=', 'user_roles.user_id')
                 ->join('roles', 'roles.id', '=', 'user_roles.role_id')
+                ->where('applications.is_active', true)
+                ->where('applications.code' , '!=', 'sso')
+                ->where('applications.code' , '!=', 'SSO')
                 ->where('user_roles.user_id', $user->id);
             
             $data = $query->orderBy('applications.name', 'asc')->get();

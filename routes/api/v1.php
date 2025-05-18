@@ -19,14 +19,8 @@ Route::group(['prefix' => 'v1'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('ldap', [UserController::class, 'userLdap']);
 
-        Route::get('session', [AuthController::class, 'checkSession']);
+        // Route::get('session', [AuthController::class, 'checkSession']);
         Route::post('callback', [AuthController::class, 'callback']);
-
-        Route::group(['prefix' => 'devices'], function () {
-            Route::get('active', [AuthController::class, 'getActiveDevices']);
-            Route::get('active/impersonate', [AuthController::class, 'getActiveImpersonations']);
-            Route::post('logout', [AuthController::class, 'logoutAllDevices']);
-        });
 
         Route::group(['prefix' => 'password'], function () {
             Route::post('forgot', [AuthController::class, 'forgotPassword']);
@@ -46,6 +40,12 @@ Route::group(['prefix' => 'v1'], function () {
             Route::group(['prefix' => 'impersonate'], function () {
                 Route::post('start/{uuid}', [AuthController::class, 'startImpersonate']);
                 Route::post('leave', [AuthController::class, 'leaveImpersonate']);
+            });
+
+            Route::group(['prefix' => 'devices'], function () {
+                Route::get('active', [AuthController::class, 'getUserActiveDevices']);
+                Route::get('active/impersonate', [AuthController::class, 'getActiveImpersonations']);
+                Route::post('logout', [AuthController::class, 'logoutUserAllDevices']);
             });
         });
 

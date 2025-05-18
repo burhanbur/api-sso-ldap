@@ -227,7 +227,6 @@ class AuthController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    
     public function changeMyPassword(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -382,7 +381,6 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-
     public function me()
     {
         $user = auth()->user()->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);
@@ -493,7 +491,7 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function checkSession()
+    /* public function checkSession()
     {
         try {
             $token = JWTAuth::getToken()->get();
@@ -515,7 +513,7 @@ class AuthController extends Controller
         } catch (Exception $ex) {
             return $this->errorResponse('Session check failed: ' . $ex->getMessage(), 401);
         }
-    }
+    } */
 
     /**
      * Log out the user from all devices except the current one.
@@ -527,7 +525,7 @@ class AuthController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function logoutAllDevices(Request $request)
+    public function logoutUserAllDevices(Request $request)
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
@@ -572,7 +570,7 @@ class AuthController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function getActiveDevices(Request $request)
+    public function getUserActiveDevices(Request $request)
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
@@ -710,7 +708,7 @@ class AuthController extends Controller
     public function callback(Request $request)
     {
         try {
-            $token = $request->input('token');
+            $token = JWTAuth::getToken();
             if (!$token) {
                 return $this->errorResponse('Token is required', 400);
             }
@@ -718,23 +716,48 @@ class AuthController extends Controller
             // Validate token
             JWTAuth::setToken($token);
             $user = JWTAuth::parseToken()->authenticate();
+            $tokenString = $token->get();
+            $now = now()->timestamp;
             
-            // Check if token exists in Redis
-            $redisToken = Redis::get(`user_token:{$user->uuid}`);
-            if (!$redisToken || $redisToken !== $token) {
-                return $this->errorResponse('Invalid token', 401);
+            // Check if token exists in Redis and is still valid
+            $expiryTime = Redis::zscore("user_tokens:{$user->uuid}", $tokenString);
+            if (!$expiryTime || $expiryTime < $now) {
+                return $this->errorResponse('Invalid or expired token', 401);
+            }
+
+            // Load user relationships needed by client applications
+            $user->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);
+        
+            // Get token details
+            $details = Redis::get("token_details:{$tokenString}");
+            $isImpersonation = false;
+            $impersonatedBy = null;
+            
+            if ($details) {
+                $details = json_decode($details, true);
+                if (isset($details['is_impersonation']) && $details['is_impersonation']) {
+                    $isImpersonation = true;
+                    $adminUser = User::where('uuid', $details['impersonated_by'])->first();
+                    $impersonatedBy = $adminUser ? $adminUser->name : 'Unknown Admin';
+                }
             }
             
             // Return user information for the client application
-            return $this->successResponse(
-                [
-                    'user' => $user,
-                    'access_token' => $token,
-                    'expires_in' => JWTAuth::factory()->getTTL() * 60,
-                    'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
-                ], 
-                'Callback successful'
-            );
+            $response = [
+                'user' => new UserResource($user),
+                'access_token' => $tokenString,
+                'token_type' => 'bearer',
+                'expires_in' => ($expiryTime - $now),
+                'formatted_expires_in' => Carbon::createFromTimestamp($expiryTime)->format('Y-m-d H:i:s'),
+                'sso_session_valid' => true
+            ];
+            
+            if ($isImpersonation) {
+                $response['is_impersonation'] = true;
+                $response['impersonated_by'] = $impersonatedBy;
+            }
+            
+            return $this->successResponse($response, 'Callback successful');
         } catch (Exception $e) {
             return $this->errorResponse('Callback failed: ' . $e->getMessage(), 500);
         }

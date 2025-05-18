@@ -43,10 +43,16 @@ class Utils
      * @param string $type The type of user (e.g. staff, student, etc.)
      * @return string The generated username
      */
-    public function generateUsername($name, $type = 'student')
+    public function generateUsername($name, $type = 'staff')
 	{
 		$temp = explode(' ', $name);
-        $username = $name[0] . $temp[count($temp) - 1];
+
+        if ($type == 'student') {
+            $username = $name[0] . '.' . $temp[count($temp) - 1];
+        } else {
+            $username = $name[0] . $temp[count($temp) - 1];
+        }
+
 	    $username = strtolower($username);
 	    $username = preg_replace('/[^A-Za-z0-9\.]/', '', $username);
 	    $checkUsername = User::where('username', $username)->first();
@@ -55,7 +61,6 @@ class Utils
 	        $username_with_inc = '';
 	        $increment = 0;
 
-	        // akan melakukan perulangan bmafazi02, bmafazi03 dst jika username yg digenerate diatas telah digunakan
 	        while ($checkUsername) {
 	            $increment++;
 	            $username_with_inc = $username . str_pad($increment, 2, "0", STR_PAD_LEFT);
@@ -137,4 +142,35 @@ class Utils
 		// Hapus semua token dengan score < timestamp sekarang (sudah expired)
 		Redis::zremrangebyscore("user_tokens:{$uuid}", '-inf', $now - 1);
 	}
+
+    /**
+     * Validate a JWT token in Redis.
+     *
+     * This method checks if the token is valid and not expired by checking
+     * the mapping from token to user UUID, and the sorted set of user tokens.
+     * If the token is valid, the method returns the token details as an array.
+     * If the token is invalid or expired, the method returns false.
+     *
+     * @param string $token The JWT token
+     * @return array|false The token details, or false if invalid or expired
+     */
+    public function validateTokenInRedis($token)
+    {
+        $userUuid = Redis::get("token_to_user:{$token}");
+        
+        if (!$userUuid) {
+            return false;
+        }
+        
+        $now = now()->timestamp;
+        $expiryTime = Redis::zscore("user_tokens:{$userUuid}", $token);
+        
+        if (!$expiryTime || $expiryTime < $now) {
+            // Token expired or not found in sorted set
+            return false;
+        }
+        
+        $details = Redis::get("token_details:{$token}");
+        return $details ? json_decode($details, true) : false;
+    }
 }
