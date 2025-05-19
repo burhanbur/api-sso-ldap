@@ -56,6 +56,8 @@ CREATE TABLE public.applications (
     id bigint NOT NULL,
     uuid character varying(36),
     code character varying,
+    client_id character varying,
+    client_secret character varying,
     name character varying,
     alias character varying,
     description text,

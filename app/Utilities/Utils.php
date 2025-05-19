@@ -88,7 +88,7 @@ class Utils
 	public function storeTokenInRedis($uuid, $token)
     {
 		$ttl = JWTAuth::factory()->getTTL() * 60;
-		
+
 		// 1. Simpan detail token dengan TTL individu
 		Redis::setex("token_details:{$token}", $ttl, json_encode([
 			'uuid' => $uuid,

@@ -23,7 +23,6 @@ A Laravel-based Single Sign-On (SSO) backend application that provides authentic
 - Composer
 - PostgreSQL
 - Redis (optional, for caching)
-- Node.js & NPM (for frontend assets)
 
 ## Technology Stack
 
@@ -75,12 +74,14 @@ DB_DATABASE=your_database
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
 
+REDIS_CLIENT=predis
 REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=null
 REDIS_PORT=6379
 
 JWT_SECRET=your_jwt_secret
 JWT_TTL=60
+JWT_REFRESH_TTL=20160
 
 LDAP_HOST=ldap://your-ldap-server
 LDAP_PORT=389
@@ -90,15 +91,15 @@ LDAP_PASSWORD=your_ldap_password
 LDAP_PEOPLE_OU=ou=people
 ```
 
-7. Run database migrations:
+7. Enter PostgreSQL, then type the command:
 ```bash
-php artisan migrate
+CREATE DATABASE uper_idp;
 ```
 
-8. Install frontend dependencies and build assets (if needed):
-```bash
-npm install
-npm run dev
+8. Import database to PostgreSQL:
+```
+psql -U <username> -d uper_idp -f database/uper_idp.sql
+
 ```
 
 ## Apache Configuration
@@ -108,8 +109,8 @@ Add this to your Apache virtual host configuration:
 ```apache
 <VirtualHost *:80>
     ServerName sso.local
-    DocumentRoot "c:/xampp82/htdocs/sso/public"
-    <Directory "c:/xampp82/htdocs/sso/public">
+    DocumentRoot "/var/www/sso/public"
+    <Directory "/var/www/sso/public">
         Options Indexes FollowSymLinks MultiViews
         AllowOverride All
         Require all granted
@@ -174,6 +175,7 @@ app/
 ├── Exports/       # Excel export classes
 ├── Helpers/       # Helper functions
 ├── Http/          # Controllers, Middleware, Requests
+├── Imports/       # Excel import classes
 ├── Models/        # Eloquent models
 ├── Providers/     # Service providers
 ├── Services/      # Business logic services
