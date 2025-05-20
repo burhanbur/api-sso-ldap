@@ -695,7 +695,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Callback endpoint for the client application.
+     * Check token endpoint for the client application.
      *
      * This endpoint is used by the client application to validate the token and get the user information.
      * The token is validated by checking if it exists in Redis and matches the one stored in Redis.
@@ -705,7 +705,7 @@ class AuthController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function callback(Request $request)
+    public function checkToken(Request $request)
     {
         try {
             $token = JWTAuth::getToken();

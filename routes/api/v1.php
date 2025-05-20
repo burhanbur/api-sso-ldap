@@ -19,8 +19,7 @@ Route::group(['prefix' => 'v1'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('ldap', [UserController::class, 'userLdap']);
 
-        // Route::get('session', [AuthController::class, 'checkSession']);
-        Route::post('callback', [AuthController::class, 'callback']);
+        Route::post('session', [AuthController::class, 'checkToken']);
 
         Route::group(['prefix' => 'password'], function () {
             Route::post('forgot', [AuthController::class, 'forgotPassword']);
