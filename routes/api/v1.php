@@ -33,10 +33,9 @@ Route::group(['prefix' => 'v1'], function () {
         Route::group(['prefix' => 'auth/me'], function () {
             Route::get('/', [AuthController::class, 'me']);
             Route::get('applications', [ApplicationController::class, 'myApplication']);
+            Route::post('profiles', [UserController::class, 'updateMyProfile']);
             Route::post('password/change', [AuthController::class, 'changeMyPassword']);
         });
-
-        Route::post('users/profile', [UserController::class, 'updateMyProfile']);
 
         // SSO Admin only routes
         Route::group(['middleware' => ['sso.admin']], function () {
