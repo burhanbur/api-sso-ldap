@@ -26,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
             'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
-            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'sso.admin' => \App\Http\Middleware\EnsureSsoAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
