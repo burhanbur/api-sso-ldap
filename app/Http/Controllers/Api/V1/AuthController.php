@@ -24,8 +24,6 @@ use App\Utilities\Ldap;
 use App\Utilities\Utils;
 
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
-use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 use Exception;
 
@@ -695,7 +693,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Check token endpoint for the client application.
+     * Check session endpoint for the client application.
      *
      * This endpoint is used by the client application to validate the token and get the user information.
      * The token is validated by checking if it exists in Redis and matches the one stored in Redis.
@@ -705,9 +703,17 @@ class AuthController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function checkToken(Request $request)
+    public function checkSession(Request $request)
     {
         try {
+            $validator = Validator::make($request->all(), [
+                'app_code' => 'required|string',  // Require client app code
+            ]);
+
+            if ($validator->fails()) {
+                return $this->errorResponse('Application code is required', 400);
+            }
+
             $token = JWTAuth::getToken();
             if (!$token) {
                 return $this->errorResponse('Token is required', 400);
@@ -727,6 +733,26 @@ class AuthController extends Controller
 
             // Load user relationships needed by client applications
             $user->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);
+
+            // Check if user has access to the requesting application
+            $hasAccess = $user->userRoles()
+                ->whereHas('application', function ($query) use ($request) {
+                    $query->where('code', $request->app_code)
+                          ->where('is_active', true);
+                })
+                ->exists();
+
+            if (!$hasAccess) {
+                return $this->errorResponse('User does not have access to this application', 403);
+            }
+
+            // Get user roles specific to this application
+            $applicationRoles = $user->userRoles()
+                ->with(['role', 'entityType'])
+                ->whereHas('application', function ($query) use ($request) {
+                    $query->where('code', $request->app_code);
+                })
+                ->get();
         
             // Get token details
             $details = Redis::get("token_details:{$tokenString}");
@@ -749,7 +775,20 @@ class AuthController extends Controller
                 'token_type' => 'bearer',
                 'expires_in' => ($expiryTime - $now),
                 'formatted_expires_in' => Carbon::createFromTimestamp($expiryTime)->format('Y-m-d H:i:s'),
-                'sso_session_valid' => true
+                'sso_session_valid' => true,
+                'application_roles' => $applicationRoles->map(function ($userRole) {
+                    return [
+                        'role' => [
+                            'name' => $userRole->role->name,
+                            'display_name' => $userRole->role->display_name,
+                        ],
+                        'entity_type' => $userRole->entityType ? [
+                            'name' => $userRole->entityType->name,
+                            'code' => $userRole->entityType->code,
+                        ] : null,
+                        'entity_id' => $userRole->entity_id,
+                    ];
+                })
             ];
             
             if ($isImpersonation) {
