@@ -37,10 +37,16 @@ Route::group(['prefix' => 'v1'], function () {
             Route::post('password/change', [AuthController::class, 'changeMyPassword']);
         });
 
+        Route::post('auth/impersonate/leave', [AuthController::class, 'leaveImpersonate']);
+
         // SSO Admin only routes
         Route::group(['middleware' => ['sso.admin']], function () {
-            // LDAP Management
-            Route::get('auth/ldap', [UserController::class, 'userLdap']);
+            // Authentication user and impersonation
+            Route::group(['prefix' => 'auth'], function () {
+                Route::get('ldap', [UserController::class, 'userLdap']);
+                Route::post('password/change', [AuthController::class, 'changeUserPassword']);
+                Route::post('impersonate/start/{uuid}', [AuthController::class, 'startImpersonate']);
+            });
             
             // User Management
             Route::prefix('users')->group(function () {
@@ -51,15 +57,6 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::put('/{uuid}/status', [UserController::class, 'updateStatus']);
                 Route::post('generate-username', [UserController::class, 'generateUsername']);
                 Route::post('import', [UserController::class, 'import']);
-            });
-
-            // User Password Management
-            Route::post('auth/password/change', [AuthController::class, 'changeUserPassword']);
-
-            // Impersonation Management
-            Route::prefix('auth/impersonate')->group(function () {
-                Route::post('start/{uuid}', [AuthController::class, 'startImpersonate']);
-                Route::post('leave', [AuthController::class, 'leaveImpersonate']);
             });
 
             // Device Management
