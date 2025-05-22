@@ -14,6 +14,8 @@ class ApplicationResource extends JsonResource
             'uuid' => $this->uuid,
             'code' => $this->code,
             'name' => $this->name,
+            'client_id' => $this->client_id,
+            'client_secret' => $this->client_secret,
             'alias' => $this->alias,
             'description' => $this->description,
             'base_url' => $this->base_url,

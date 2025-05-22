@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
             'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
             'sso.admin' => \App\Http\Middleware\EnsureSsoAdmin::class,
+            'client.authorize' => \App\Http\Middleware\EnsureUserAppAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

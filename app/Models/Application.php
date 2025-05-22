@@ -12,7 +12,7 @@ class Application extends Model
 
     protected $fillable = [
         'uuid', 'code', 'name', 'alias', 'description', 'image',
-        'is_active', 'base_url', 'login_url', 'platform_type', 'visibility'
+        'is_active', 'base_url', 'login_url', 'platform_type', 'visibility', 'client_id', 'client_secret',
     ];
 
     public function userRoles()

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\V1\ApplicationController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ClientController;
 use App\Http\Controllers\Api\V1\EntityTypeController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\RoleTypeController;
@@ -29,6 +30,12 @@ Route::group(['prefix' => 'v1'], function () {
 
     // Authenticated user routes
     Route::group(['middleware' => ['jwt.auth']], function () {
+        // Client routes
+        Route::group(['prefix' => 'client', 'middleware' => ['client.authorize']], function () {
+            Route::get('users', [ClientController::class, 'getUserByCode']);
+            Route::post('users', [ClientController::class, 'insertOrUpdateUser']);
+        });
+
         // User profile and personal routes
         Route::group(['prefix' => 'auth/me'], function () {
             Route::get('/', [AuthController::class, 'me']);

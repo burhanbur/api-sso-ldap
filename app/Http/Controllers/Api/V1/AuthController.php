@@ -707,7 +707,7 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'app_code' => 'required|string',  // Require client app code
+                'app_code' => 'required|string',
             ]);
 
             if ($validator->fails()) {

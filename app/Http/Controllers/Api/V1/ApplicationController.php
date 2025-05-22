@@ -102,8 +102,13 @@ class ApplicationController extends Controller
         try {
             DB::beginTransaction();
 
+            $clientId = bin2hex(random_bytes(8));
+            $clientSecret = bin2hex(random_bytes(16));
+
             $params = $validator->validated();
             $params['uuid'] = Str::uuid();
+            $params['client_id'] = $clientId;
+            $params['client_secret'] = $clientSecret;
             $params['code'] = strtolower($params['code']);
 
             // Handle image upload
