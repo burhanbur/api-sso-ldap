@@ -24,7 +24,7 @@ class EnsureUserAppAccess
             return $this->errorResponse('Unauthorized. User not authenticated.', 401);
         }
 
-        $clientId = $request->client_id;
+        $clientId = $request->header('x-api-key');
 
         if (!$clientId) {
             return $this->errorResponse('Application client ID is required.', 400);

@@ -536,6 +536,8 @@ CREATE TABLE public.users (
     join_date date,
     title character varying,
     status character varying,
+    created_by bigint,
+    updated_by bigint,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now()
 );
@@ -645,8 +647,8 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 -- Data for Name: applications; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.applications (id, uuid, code, name, alias, description, image, is_active, base_url, login_url, platform_type, visibility, created_at, updated_at) FROM stdin;
-1	08bdfb64-4fb7-4d80-81a0-23e0af16842e	SSO	Single Sign On	SSO	Portal autentikasi terpusat	/images/sso.png	t	https://sso.universitaspertamina.ac.id	https://sso.universitaspertamina.ac.id/login	web	internal	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
+COPY public.applications (id, uuid, code, name, alias, description, image, is_active, base_url, login_url, platform_type, visibility, created_at, updated_at, client_id, client_secret) FROM stdin;
+1	08bdfb64-4fb7-4d80-81a0-23e0af16842e	SSO	Single Sign On	SSO	Portal autentikasi terpusat	/images/sso.png	t	https://sso.universitaspertamina.ac.id	https://sso.universitaspertamina.ac.id/login	web	internal	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006	b25b216ef1437e68	5b153f63eb2113a6a3f0cdb036bb58e5
 \.
 
 

@@ -39,6 +39,7 @@ class ClientController extends Controller
     {
         try {
             $code = $request->get('code');
+
             if (!$code) {
                 return $this->errorResponse('Code is required', 400);
             }
@@ -57,7 +58,9 @@ class ClientController extends Controller
             Log::error('Error retrieving user by code: ' . $e->getMessage());
             return $this->errorResponse('An error occurred while retrieving the user', 500);
         }
-    }    public function insertOrUpdateUser(Request $request)
+    }    
+    
+    public function insertOrUpdateUser(Request $request)
     {
         try {
             DB::beginTransaction();
@@ -65,83 +68,93 @@ class ClientController extends Controller
             $validator = Validator::make($request->all(), [
                 'code' => 'required|string|max:255',
                 'name' => 'required|string|max:255',
-                'username' => 'required|string|max:255',
+                'type' => 'required|string|max:255|in:student,staff',
+                'username' => 'nullable|string|max:255',
                 'email' => 'required|email|max:255',
-                'password' => 'required|string|min:8|confirmed',
-                'app_code' => 'required|string|exists:applications,code',
-                'roles' => 'required|array',
-                'roles.*.code' => 'required|string|exists:roles,name',
-                'roles.*.entity' => 'nullable|array',
-                'roles.*.entity.type' => 'nullable|string|exists:entity_types,code',
-                'roles.*.entity.id' => 'nullable|string|max:50'
             ]);
 
             if ($validator->fails()) {
                 return $this->errorResponse($validator->errors(), 422);
             }
 
-            // Find application by code
-            $application = Application::where('code', $request->app_code)->first();
+            $clientId = $request->header('x-api-key');
+
+            // Find application by client_id
+            $application = Application::where('client_id', $clientId)->first();
             if (!$application) {
-                return $this->errorResponse('Application not found', 404);
+                return $this->errorResponse('Application client id not found', 404);
             }
 
             // Find or create user
             $user = User::where('code', $request->code)->first();
             $isNewUser = !$user;
 
+            $plainPassword = $request->password;
+            $bcryptPassword = bcrypt($request->password);
+
             if ($isNewUser) {
                 $user = new User();
                 $user->uuid = Str::uuid();
-                $user->password = bcrypt($request->password);
+                $user->code = $request->code;
+                $user->password = $bcryptPassword;
+                $user->created_by = auth()->user()->id;
+
+                if ($request->username) {
+                    $checkUsername = User::where('username', $request->username)->first();
+
+                    if ($checkUsername) {
+                        $username = Utils::getInstance()->generateUsername($request->name, $request->type);
+                    } else {
+                        $username = $request->username;
+                    }
+                } else {
+                    $username = Utils::getInstance()->generateUsername($request->name, $request->type);
+                }
+
+                $user->username = $username;
+                $user->join_date = $request->input('join_date', now()->format('Y-m-d'));
+                $user->title = $request->input('title');
+                $user->status = $request->input('status', 'Aktif');
             }
 
             // Update user data
-            $user->code = $request->code;
-            $user->username = $request->username;
             $user->full_name = $request->name;
             $user->nickname = $request->input('nickname', $request->name);
             $user->email = $request->email;
             $user->alt_email = $request->input('alt_email');
-            $user->join_date = $request->input('join_date', now()->format('Y-m-d'));
-            $user->title = $request->input('title');
-            $user->status = $request->input('status', 'Aktif');
+            $user->updated_by = auth()->user()->id;
 
             // Save user
             $user->save();
 
             // Prepare roles data
-            $appAccess = [];
-            foreach ($request->roles as $roleData) {
-                $role = Role::where('name', $roleData['code'])->first();
-                if (!$role) {
-                    continue;
-                }
+            $roleId = 2; // Default role for user
+            $entityTypeId = null;
+            $entityId = null;
 
-                $entityTypeId = null;
-                $entityId = null;
-                if (!empty($roleData['entity'])) {
-                    $entityType = EntityType::where('code', $roleData['entity']['type'])->first();
-                    if ($entityType) {
-                        $entityTypeId = $entityType->id;
-                        $entityId = $roleData['entity']['id'];
-                    }
-                }
-
-                $appAccess[] = [
-                    'app_id' => $application->id,
-                    'role_id' => $role->id,
-                    'entity_type_id' => $entityTypeId,
-                    'entity_id' => $entityId
-                ];
+            $userRole = UserRole::where('user_id', $user->id)
+                ->where('application_id', $application->id)
+                ->where( function ($query) use ($roleId) {
+                    $query->where('role_id', $roleId)->orWhere('role_id', 1);
+                })
+                ->first();
+            
+            if (!$userRole) {
+                $userRole = new UserRole();
+                $userRole->uuid = Str::uuid();
+                $userRole->user_id = $user->id;
+                $userRole->role_id = $roleId;
+                $userRole->app_id = $application->id;
+                $userRole->entity_type_id = $entityTypeId;
+                $userRole->entity_id = $entityId;
+                $userRole->assigned_by = auth()->user()->id;
+                $userRole->assigned_at = now();
+                $userRole->save();
             }
-
-            // Sync user roles
-            $this->_syncUserAccess($user, $appAccess);
 
             // Sync with LDAP
             if ($isNewUser) {
-                $sync = Ldap::syncUserFromLdap($user, 'store', $request->password);
+                $sync = Ldap::syncUserFromLdap($user, 'store', $plainPassword);
             } else {
                 $sync = Ldap::syncUserFromLdap($user, 'update');
             }
@@ -161,58 +174,6 @@ class ClientController extends Controller
             DB::rollBack();
             Log::error('Error creating/updating user: ' . $e->getMessage());
             return $this->errorResponse('An error occurred while creating or updating the user', 500);
-        }
-    }
-
-    /**
-     * Sync user access (roles) with the given user.
-     *
-     * @param User $user
-     * @param array $appAccess
-     * @return void
-     */
-    private function _syncUserAccess(User $user, array $appAccess = []): void
-    {
-        $assignedBy = auth()->user()->id;
-        $now = now();
-
-        $existingAccess = UserRole::where('user_id', $user->id)->get();
-        $incomingKeys = [];
-
-        foreach ($appAccess as $value) {
-            $key = $value['app_id'] . '-' . $value['role_id'];
-            $incomingKeys[] = $key;
-
-            $access = $existingAccess->firstWhere(function ($item) use ($value) {
-                return $item->app_id == $value['app_id'] && $item->role_id == $value['role_id'];
-            });
-
-            if ($access) {
-                $access->update([
-                    'entity_type_id' => $value['entity_type_id'],
-                    'entity_id' => $value['entity_id'],
-                    'assigned_by' => $assignedBy,
-                    'assigned_at' => $now,
-                ]);
-            } else {
-                UserRole::create([
-                    'uuid' => Str::uuid(),
-                    'user_id' => $user->id,
-                    'role_id' => $value['role_id'],
-                    'app_id' => $value['app_id'],
-                    'entity_type_id' => $value['entity_type_id'],
-                    'entity_id' => $value['entity_id'],
-                    'assigned_by' => $assignedBy,
-                    'assigned_at' => $now,
-                ]);
-            }
-        }
-
-        foreach ($existingAccess as $oldAccess) {
-            $key = $oldAccess->app_id . '-' . $oldAccess->role_id;
-            if (!in_array($key, $incomingKeys)) {
-                $oldAccess->delete();
-            }
         }
     }
 
