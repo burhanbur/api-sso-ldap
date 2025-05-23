@@ -647,10 +647,6 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 COPY public.applications (id, uuid, code, name, alias, description, image, is_active, base_url, login_url, platform_type, visibility, created_at, updated_at) FROM stdin;
 1	08bdfb64-4fb7-4d80-81a0-23e0af16842e	SSO	Single Sign On	SSO	Portal autentikasi terpusat	/images/sso.png	t	https://sso.universitaspertamina.ac.id	https://sso.universitaspertamina.ac.id/login	web	internal	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-2	a3ba61b3-8b97-4da7-b7d5-7f886e326325	siakad	Sistem Informasi Akademik	SISKA	Portal akademik mahasiswa dan dosen	/images/siup.png	t	https://siska.universitaspertamina.ac.id	https://sso.universitaspertamina.ac.id/login	web	internal	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-3	fc8fde7f-be55-4645-8715-f15094a9b077	pmb	Penerimaan Mahasiswa Baru	PMB	Portal untuk proses seleksi dan penerimaan mahasiswa baru	/images/pmb.png	t	https://pmb.universitaspertamina.ac.id	https://sso.universitaspertamina.ac.id/login	web	public	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-4	4bd0babb-562c-4911-b216-369d1a9b05cd	ods	Online Disciplinary System	ODIN	Aplikasi pengelola pelanggaran mahasiswa	/images/odin.png	t	https://ods.universitaspertamina.ac.id/admin	https://sso.universitaspertamina.ac.id/login	web	internal	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-5	debb2bc7-3e74-44fd-b470-7b894012304d	HRMS	HR Management System Updated	HRMS v2	Updated HR management application	\N	t	https://hrms-v2.example.com	https://hrms-v2.example.com/login	Web	Private	2025-04-22 13:52:20	2025-04-22 13:55:44
 \.
 
 
@@ -808,26 +804,7 @@ SELECT pg_catalog.setval('public.role_types_id_seq', 4, true);
 
 COPY public.roles (id, uuid, name, display_name, description, role_type_id, scope_type_id, created_at, updated_at) FROM stdin;
 1	232c15aa-8d19-4c56-9fd0-94ed89d3c905	admin	Administrator Sistem Utama	Admin pengelola sistem autentikasi pusat	3	1	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-2	11e0349a-e47a-4609-b7b8-5988a7b74da2	mhs	Mahasiswa	Mahasiswa	1	1	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-3	95ddf0e8-cc63-4488-927b-54bcd6f48ff0	dos	Dosen	Peran pengajar dan pembimbing akademik	1	1	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-4	63f4dfed-0ebe-4f4e-bc91-8bfb9e57a82f	dtt	Dosen Tidak Tetap	Peran pengajar dan pembimbing akademik tidak tetap	1	1	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-5	0fa17004-db44-40ff-b899-d6d09f308097	kaprodi	Ketua Program Studi	Pengelola program studi	1	4	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-6	db69206c-6d4c-4436-b045-28557cb245f7	sekprod	Sekretaris Prodi	Pembantu Ketua Prodi dalam kegiatan akademik	1	4	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-7	4b954edf-0a6b-433c-a7e3-52f670d9f9a2	dekan	Dekan	Pimpinan fakultas	1	3	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-8	7f2a15f9-6f27-45e6-8e9a-035917239a0b	wadek	Wakil Dekan	Wakil pimpinan fakultas	1	3	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-9	e2057f51-4402-461f-887f-ac831f0f2894	rektor	Rektor	Pimpinan tertinggi universitas	2	2	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-10	7573e533-2df5-40a9-b502-9037275cbe56	warek	Wakil Rektor	Wakil pimpinan universitas	2	2	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-11	48b55e75-cb39-4a93-8dec-9929ce29017b	su	Sekretaris Universitas	Sekretaris Universitas	2	2	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-12	b393a845-9c54-49a2-ba1a-adee37cfc87e	direktur	Direktur	Pimpinan direktorat	2	5	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-13	d6f3ff29-7de1-4707-bd48-1655a8643772	manajer	Manajer	Penanggung jawab fungsi direktorat	2	5	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-14	60a1295c-b3af-4aed-9432-29b93e4f1aa0	asman	Asisten Manajer	Pembantu manajer	2	5	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-15	d6b7afc2-0cc5-415f-93bb-d976a13e7d4b	staf	Staf	Staf fungsional	2	6	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-16	4be9396f-7838-4180-b95f-ab7cac685779	akad	Bagian Akademik	Bagian akademik	2	2	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-17	7ab1d325-e3b5-4809-a9e7-d3e3312b66cd	kmhsn	Bagian Kemahasiswaan	Pengelola Kemahasiswaan	2	2	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-18	b5a96c05-dc8a-4389-ab69-5fb0a5a5c1e6	adminProdi	Admin Fakultas/Program Studi	Admin program studi atau fakultas	2	4	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-19	7ab37648-f30d-4e1c-bdda-7405d58979aa	spm	Satuan Penjaminan Mutu	Unit Penjaminan Mutu Akademik	4	1	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-20	40671ee4-3d8c-4bba-98be-f0eb16476b2d	spi	Satuan Penjaminan Internal	Unit Penjaminan Mutu Internal	4	1	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-22	f2c6fb23-f818-4ca4-9750-6fd876d3ca84	mhs2	Mahasiswa	Mahasiswa	1	1	2025-04-22 13:42:49	2025-04-22 13:42:49
+2	11e0349a-e47a-4609-b7b8-5988a7b74da2	user	Civitas Akademik	Civitas akademik yang terdaftar	2	6	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
 \.
 
 
@@ -873,7 +850,6 @@ COPY public.sessions (id, user_id, ip_address, user_agent, payload, last_activit
 
 COPY public.user_roles (id, uuid, user_id, role_id, app_id, entity_type_id, entity_id, assigned_by, assigned_at, created_at, updated_at) FROM stdin;
 1	322e5bcc-81b9-47ba-9648-c21c6afabfad	1	1	1	\N	\N	1	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-6	94fd5e23-f56c-4b4a-8957-e167072ca6ed	1	1	5	\N	\N	1	2025-04-22 18:47:24	2025-04-22 18:47:24	2025-04-22 18:47:24
 \.
 
 
@@ -893,6 +869,7 @@ COPY public.users (id, uuid, username, password, code, full_name, nickname, emai
 7	5f27b7e4-4bec-494a-97d9-81f93752603e	karsyad	$2y$12$kTTHXWQ0zG1bcv0/eAex0eKhjkRYi2fde7dMUl/huF979uOPC1FI6	624012	Kiagus Muhammad Arsyad	Arsyad	arsyad@uper.ac.id	\N	2025-04-28	Programmer	Aktif	2025-04-29 18:41:50	2025-04-30 16:08:04
 6	6ef40b91-c21a-4ae3-976b-d5aaf0664be6	lmawati	$2y$12$Nd9p/kih88.WIB9UDFDOauOHo/ZWdocsanCt6DteYnTVF7SG19NjO	216090	Luluk Eko Mawati	Luluk	luluk@example.com	luluk2@example.com	2023-08-15	Software Engineer	Aktif	2025-04-16 18:18:02	2025-04-29 18:17:07
 8	78ff9d80-602b-4fd5-bf70-74e9190444ff	bwicaksono	$2y$12$Frq56yrGa6I1O2ZQYeybPeXMbHNejUXkS9IvDCmqENYEUcs289pg6	219030	Bayu Wicaksono	Bayu	bayu@uper.ac.id	\N	2025-04-17	Technical Writer	Aktif	2025-04-30 09:56:49	2025-05-07 15:56:52
+10	29fd3c5c-e120-4d17-bba8-72f2cdb980ce	rputra	$2y$12$txsxSyuHshJyrPMQHpY7ZeZpsbom3e1dGjXrNnvz9fkNyB65Bt5DK	119030	Randi Farmana Putra	Randi	randi@uper.ac.id	\N	2025-04-17	Manajer TIK	Aktif	2025-04-30 09:56:49	2025-05-07 15:56:52
 \.
 
 
