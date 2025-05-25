@@ -29,7 +29,11 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = Notification::with(['user', 'application'])->orderBy('created_at', 'desc')->paginate(10);
+            $user = auth()->user();
+            $data = Notification::with(['user', 'application'])
+                ->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
 
             return $this->successResponse(
                 NotificationResource::collection($data),
@@ -56,14 +60,14 @@ class NotificationController extends Controller
         try {
             DB::beginTransaction();
 
-            $clientId = $request->header('x-api-key');
+            $clientId = $request->header('Client-ID');
             if (!$clientId) {
-                return $this->errorResponse('Client ID is required', 400);
+                return $this->errorResponse('Client ID wajib diisi.', 400);
             }
 
             $app = Application::where('client_id', $clientId)->first();
             if (!$app) {
-                return $this->errorResponse('Application not found', 404);
+                return $this->errorResponse('Client ID aplikasi tidak ditemukan.', 404);
             }
 
             $data = Notification::create([
@@ -80,7 +84,7 @@ class NotificationController extends Controller
 
             return $this->successResponse(
                 $data,
-                'Notification stored successfully'
+                'Berhasil menyimpan notifikasi.'
             );
         } catch (Exception $ex){
             DB::rollBack();
@@ -94,7 +98,7 @@ class NotificationController extends Controller
         try {
             $notification = Notification::with(['user', 'application'])->where('uuid', $uuid)->first();
             if (!$notification) {
-                return $this->errorResponse('Notification not found', 404);
+                return $this->errorResponse('Data notifikasi tidak ditemukan.', 404);
             }
 
             $notification->update([
@@ -104,7 +108,7 @@ class NotificationController extends Controller
 
             return $this->successResponse(
                 new NotificationResource($notification),
-                'Notification status updated successfully'
+                'Notifikasi telah ditandai sebagai dibaca.'
             );
         } catch (Exception $ex) {
             Log::error('Error updating notification: ' . $ex->getMessage() . ' at ' . $ex->getFile() . ':' . $ex->getLine());
@@ -117,12 +121,12 @@ class NotificationController extends Controller
         try {
             $notification = Notification::where('uuid', $uuid)->first();
             if (!$notification) {
-                return $this->errorResponse('Notification not found', 404);
+                return $this->errorResponse('Data notifikasi tidak ditemukan.', 404);
             }
 
             $notification->delete();
 
-            return $this->successResponse(null, 'Notification deleted successfully');
+            return $this->successResponse(null, 'Berhasil menghapus notifikasi.');
         } catch (Exception $ex) {
             Log::error('Error deleting notification: ' . $ex->getMessage() . ' at ' . $ex->getFile() . ':' . $ex->getLine());
             return $this->errorResponse($ex->getMessage(), 500);
@@ -135,7 +139,7 @@ class NotificationController extends Controller
             $userId = auth()->user()->id;
             Notification::where(['user_id' => $userId, 'is_read' => false])->update(['is_read' => true, 'read_at' => now()]);
 
-            return $this->successResponse(null, 'All notifications marked as read');
+            return $this->successResponse(null, 'Semua notifikasi telah ditandai sebagai dibaca.');
         } catch (Exception $ex) {
             Log::error('Error marking all notifications as read: ' . $ex->getMessage() . ' at ' . $ex->getFile() . ':' . $ex->getLine());
             return $this->errorResponse($ex->getMessage(), 500);

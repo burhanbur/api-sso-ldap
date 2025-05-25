@@ -21,7 +21,7 @@ class EnsureSsoAdmin
         $user = auth()->user();
 
         if (!$user) {
-            return $this->errorResponse('Unauthorized. User not authenticated.', 401);
+            return $this->errorResponse('Sesi Anda telah berakhir. Silakan login kembali.', 401);
         }
 
         // Check if user has admin role for SSO application
@@ -35,7 +35,7 @@ class EnsureSsoAdmin
             ->exists();
 
         if (!$hasAdminAccess) {
-            return $this->errorResponse('Unauthorized. SSO admin access required.', 403);
+            return $this->errorResponse('Akses ditolak. Hanya admin SSO yang dapat mengakses.', 403);
         }
 
         return $next($request);

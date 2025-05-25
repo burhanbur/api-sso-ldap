@@ -41,13 +41,13 @@ class ClientController extends Controller
             $code = $request->get('code');
 
             if (!$code) {
-                return $this->errorResponse('Code is required', 400);
+                return $this->errorResponse('NIP/NIM wajib diisi.', 400);
             }
 
             $user = User::where('code', $code)->first();
 
             if (!$user) {
-                return $this->errorResponse('User not found', 404);
+                return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
             }
 
             return $this->successResponse(
@@ -56,7 +56,7 @@ class ClientController extends Controller
             );
         } catch (Exception $e) {
             Log::error('Error retrieving user by code: ' . $e->getMessage());
-            return $this->errorResponse('An error occurred while retrieving the user', 500);
+            return $this->errorResponse('Terjadi kesalahan saat mengambil pengguna.', 500);
         }
     }    
     
@@ -77,12 +77,12 @@ class ClientController extends Controller
         try {
             DB::beginTransaction();
 
-            $clientId = $request->header('x-api-key');
+            $clientId = $request->header('Client-ID');
 
             // Find application by client_id
             $application = Application::where('client_id', $clientId)->first();
             if (!$application) {
-                return $this->errorResponse('Application client id not found', 404);
+                return $this->errorResponse('Client ID wajib diisi.', 404);
             }
 
             // Find or create user
@@ -150,19 +150,19 @@ class ClientController extends Controller
 
             if (!$sync) {
                 DB::rollBack();
-                return $this->errorResponse('Failed to sync user with LDAP', 500);
+                return $this->errorResponse('Proses sinkronisasi pengguna ke LDAP tidak berhasil.', 500);
             }
 
             DB::commit();
 
             return $this->successResponse(
                 new UserResource($user->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType'])), 
-                'User ' . ($isNewUser ? 'created' : 'updated') . ' successfully'
+                'Berhasil ' . ($isNewUser ? 'membuat' : 'mengubah') . ' data pengguna ' . $user->full_name . '.'
             );
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error creating/updating user: ' . $e->getMessage());
-            return $this->errorResponse('An error occurred while creating or updating the user', 500);
+            return $this->errorResponse('Terjadi kesalahan saat membuat atau memperbarui pengguna.', 500);
         }
     }
 

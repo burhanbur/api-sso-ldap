@@ -42,17 +42,17 @@ class AuthController extends Controller
         $credentials = $request->only('username', 'password');
 
         if (!Ldap::bind($credentials['username'], $credentials['password'])) {
-            return $this->errorResponse('Username or password is incorrect', 401);
+            return $this->errorResponse('Kombinasi username dan password tidak valid.', 401);
         }
 
         $user = User::where('username', $credentials['username'])->first();
 
         if (!$user) {
-            return $this->errorResponse('User not registered', 401);
+            return $this->errorResponse('Login gagal. Periksa kembali data Anda.', 401);
         }
 
         if ($user->status != 'Aktif') {
-            return $this->errorResponse('Cannot login because user account status is inactive', 401);
+            return $this->errorResponse('Akun Anda saat ini tidak aktif. Silakan hubungi admin untuk lebih lanjut.', 401);
         }
 
         $token = JWTAuth::fromUser($user);
@@ -86,7 +86,7 @@ class AuthController extends Controller
 
             return $this->successResponse(
                 null,
-                'User logged out successfully'
+                'Sesi Anda telah berakhir.'
             );
         } catch (Exception $ex) {
             return $this->errorResponse($ex->getMessage(), 500);
@@ -113,7 +113,7 @@ class AuthController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                return $this->errorResponse('User not found', 404);
+                return $this->errorResponse('Email tidak terdaftar. Pastikan penulisan email benar.', 404);
             }
 
             // Generate unique token
@@ -142,7 +142,7 @@ class AuthController extends Controller
 
             return $this->successResponse(
                 null,
-                'Password reset link has been sent to your email'
+                'Link reset password telah dikirim ke email Anda.'
             );
         } catch (Exception $ex) {
             return $this->errorResponse($ex->getMessage(), 500);
@@ -176,13 +176,13 @@ class AuthController extends Controller
                 ->first();
     
             if (!$resetToken) {
-                return $this->errorResponse('Invalid reset token', 400);
+                return $this->errorResponse('Link reset password tidak valid atau sudah kadaluarsa.', 400);
             }
     
             // Check if token is expired (1 hour)
             if (Carbon::parse($resetToken->created_at)->addHour()->isPast()) {
                 DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-                return $this->errorResponse('Reset token has expired', 400);
+                return $this->errorResponse('Link reset password Anda sudah melewati batas waktu 1 jam. ', 400);
             }
     
             $user = User::where('email', $request->email)->first();
@@ -191,7 +191,7 @@ class AuthController extends Controller
             $ldapConn = Ldap::connectToLdap();
 
             if (!$ldapConn) {
-                throw new Exception('LDAP admin bind failed');
+                throw new Exception('Gagal terhubung ke server direktori. Silakan cek kredensial admin LDAP atau konfigurasi server.');
             }
     
             // Update password in LDAP
@@ -199,7 +199,7 @@ class AuthController extends Controller
             $newPassword = Ldap::hashLdapPassword($request->password);
             
             if (!@ldap_modify($ldapConn, $userDn, ['userPassword' => $newPassword])) {
-                throw new Exception('Failed to update LDAP password');
+                throw new Exception('Gagal memperbarui password. Silakan coba lagi atau hubungi administrator sistem.');
             }
     
             // Delete used token
@@ -207,7 +207,7 @@ class AuthController extends Controller
     
             return $this->successResponse(
                 null,
-                'Password has been reset successfully'
+                'Kata sandi telah berhasil direset. Silakan masuk dengan kata sandi baru Anda.'
             );
     
         } catch (Exception $ex) {
@@ -257,7 +257,7 @@ class AuthController extends Controller
 
             // Bind pakai password lama (validasi)
             if (!@ldap_bind($ldapConn, $userDn, $request->current_password)) {
-                return $this->errorResponse('Invalid current password', 403);
+                return $this->errorResponse('Password yang Anda masukkan tidak valid.', 403);
             }
 
             // Format SSHA baru
@@ -267,14 +267,14 @@ class AuthController extends Controller
             $entry = ['userPassword' => $newPass];
 
             if (!@ldap_modify($ldapConn, $userDn, $entry)) {
-                throw new Exception('Failed to update password');
+                throw new Exception('Gagal memperbarui password. Silakan coba lagi atau hubungi administrator sistem.');
             }
 
             DB::commit();
 
             $response = $this->successResponse(
                 new UserResource(auth()->user()),
-                'Password updated successfully'
+                'Password berhasil diperbarui.'
             );
         } catch (Exception $ex) {
             DB::rollBack();
@@ -316,7 +316,7 @@ class AuthController extends Controller
             $ldapConn = Ldap::connectToLdap();
 
             if (!$ldapConn) {
-                throw new Exception('LDAP admin bind failed');
+                throw new Exception('Gagal terhubung ke server direktori. Silakan cek kredensial admin LDAP atau konfigurasi server.');
             }
 
             $user = User::where('username', $request->username)->first();
@@ -329,14 +329,14 @@ class AuthController extends Controller
             $entry = ['userPassword' => $newPassword];
 
             if (!@ldap_modify($ldapConn, $userDn, $entry)) {
-                throw new Exception('Failed to update LDAP password');
+                throw new Exception('Gagal memperbarui password. Silakan coba lagi atau hubungi administrator sistem.');
             }
 
             DB::commit();
 
             $response = $this->successResponse(
                 new UserResource(auth()->user()),
-                'Password updated successfully'
+                'Password berhasil diperbarui.'
             );
         } catch (Exception $ex) {
             DB::rollBack();
@@ -369,8 +369,8 @@ class AuthController extends Controller
                 'expires_in' => $expiredIn,
                 'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
             ]);
-        } catch (Exception $e) {
-            return $this->errorResponse('Could not refresh token', 401);
+        } catch (Exception $ex) {
+            return $this->errorResponse('Sesi Anda telah berakhir. Silakan login kembali.', 401);
         }
     }
 
@@ -402,11 +402,11 @@ class AuthController extends Controller
         $target = User::where('uuid', $uuid)->first();
 
         if (!$target) {
-            return $this->errorResponse('User not found', 404);
+            return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
         }
 
         if ($admin->uuid === $target->uuid) {
-            return $this->errorResponse('Cannot impersonate yourself', 403);
+            return $this->errorResponse('Tidak dapat impersonasi diri sendiri.', 403);
         }
 
         $target->setCustomClaims(['impersonated_by' => $admin->uuid]);
@@ -436,7 +436,7 @@ class AuthController extends Controller
                 'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
                 'impersonated_user' => $target,
             ],
-            'Impersonation successfully'
+            'Berhasil impersonasi sebagai ' . $target->full_name . '.'
         );
     }
 
@@ -453,13 +453,13 @@ class AuthController extends Controller
         $token = JWTAuth::getToken()->get();
 
         if (!$originalAdminUuid) {
-            return $this->errorResponse('Not impersonating any user', 403);
+            return $this->errorResponse('Anda tidak sedang impersonasi pengguna lain.', 403);
         }
 
         $admin = User::where('uuid', $originalAdminUuid)->first();
         
         if (!$admin) {
-            return $this->errorResponse('User not found', 404);
+            return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
         }
 
         Utils::getInstance()->removeTokenFromRedis($current->uuid, $token);
@@ -476,7 +476,7 @@ class AuthController extends Controller
                 'impersonated_user' => $current,
                 'original_user' => $admin,
             ],
-            'Impersonation revoked successfully'
+            'Berhasil mengakhiri impersonasi sebagai ' . $current->full_name . '.'
         );
     }
 
@@ -550,7 +550,7 @@ class AuthController extends Controller
             
             return $this->successResponse(
                 null,
-                'Logged out from all other devices successfully'
+                'Berhasil keluar dari semua perangkat.'
             );
         } catch (Exception $ex) {
             return $this->errorResponse($ex->getMessage(), 500);
@@ -710,14 +710,14 @@ class AuthController extends Controller
     public function checkSession(Request $request)
     {
         try {
-            $clientId = $request->header('x-api-key');
+            $clientId = $request->header('Client-ID');
             if (!$clientId) {
-                return $this->errorResponse('Application client ID is required', 400);
+                return $this->errorResponse('Client ID wajib diisi.', 400);
             }
 
             $token = JWTAuth::getToken();
             if (!$token) {
-                return $this->errorResponse('Token is required', 400);
+                return $this->errorResponse('Token wajib diisi.', 400);
             }
             
             // Validate token
@@ -729,7 +729,7 @@ class AuthController extends Controller
             // Check if token exists in Redis and is still valid
             $expiryTime = Redis::zscore("user_tokens:{$user->uuid}", $tokenString);
             if (!$expiryTime || $expiryTime < $now) {
-                return $this->errorResponse('Invalid or expired token', 401);
+                return $this->errorResponse('Token yang digunakan tidak berlaku atau sudah habis masa berlakunya.', 401);
             }
 
             // Load user relationships needed by client applications
@@ -744,7 +744,7 @@ class AuthController extends Controller
                 ->exists();
 
             if (!$hasAccess) {
-                return $this->errorResponse('User does not have access to this application', 403);
+                return $this->errorResponse('Akses ke aplikasi ini tidak diizinkan untuk pengguna ini.', 403);
             }
 
             // Get user roles specific to this application

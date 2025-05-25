@@ -93,7 +93,7 @@ class UserController extends Controller
             $user = User::with(['userRoles.role', 'userRoles.application', 'userRoles.entityType'])->where('uuid', $uuid)->first();
 
             if (!$user) {
-                return $this->errorResponse('User not found', 404);
+                return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
             }
             
             $response = $this->successResponse(
@@ -166,14 +166,14 @@ class UserController extends Controller
             $sync = Ldap::syncUserFromLdap($user, 'store', $plainPassword);
 
             if (!$sync) {
-                return $this->errorResponse('Failed to sync user from LDAP', 500);
+                return $this->errorResponse('Gagal terhubung ke server direktori. Silakan cek kredensial admin LDAP atau konfigurasi server.', 500);
             }
 
             DB::commit();
             
             $response = $this->successResponse(
                 new UserResource($user),
-                'User created successfully'
+                'Data pengguna baru berhasil dibuat.'
             );
         } catch (Exception $ex) {
             DB::rollBack();
@@ -190,7 +190,7 @@ class UserController extends Controller
         $user = User::where('uuid', $uuid)->first();
 
         if (!$user) {
-            return $this->errorResponse('User not found', 404);
+            return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -240,14 +240,14 @@ class UserController extends Controller
             $sync = Ldap::syncUserFromLdap($user, 'update');
 
             if (!$sync) {
-                return $this->errorResponse('Failed to sync user from LDAP', 500);
+                return $this->errorResponse('Gagal terhubung ke server direktori. Silakan cek kredensial admin LDAP atau konfigurasi server.', 500);
             }
 
             DB::commit();
 
             $response = $this->successResponse(
                 new UserResource($user),
-                'User updated successfully'
+                'Data pengguna berhasil diperbarui.'
             );
         } catch (Exception $ex) {
             DB::rollBack();
@@ -319,7 +319,7 @@ class UserController extends Controller
         $user = User::where('uuid', $uuid)->first();
 
         if (!$user) {
-            return $this->errorResponse('User not found', 404);
+            return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -343,14 +343,14 @@ class UserController extends Controller
             $sync = Ldap::syncUserFromLdap($user, 'update');
 
             if (!$sync) {
-                return $this->errorResponse('Failed to sync user status from LDAP', 500);
+                return $this->errorResponse('Gagal terhubung ke server direktori. Silakan cek kredensial admin LDAP atau konfigurasi server.', 500);
             }
 
             DB::commit();
 
             $response = $this->successResponse(
                 new UserResource($user),
-                'User status updated successfully'
+                'Data status pengguna berhasil diperbarui.'
             );
         } catch (Exception $ex) {
             DB::rollBack();
@@ -369,7 +369,7 @@ class UserController extends Controller
 
         return $this->successResponse(
             $username,
-            'Username generated successfully'
+            'Username berhasil dibuat.'
         );
     }
 
@@ -380,7 +380,7 @@ class UserController extends Controller
         $user = auth()->user();
 
         if (!$user) {
-            return $this->errorResponse('User not found', 404);
+            return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -411,14 +411,14 @@ class UserController extends Controller
             $sync = Ldap::syncUserFromLdap($user, 'update');
 
             if (!$sync) {
-                return $this->errorResponse('Failed to sync user from LDAP', 500);
+                return $this->errorResponse('Gagal terhubung ke server direktori. Silakan cek kredensial admin LDAP atau konfigurasi server.', 500);
             }
 
             DB::commit();
 
             $response = $this->successResponse(
                 new UserResource($user),
-                'User updated successfully'
+                'Profil pengguna berhasil diperbarui.'
             );
         } catch (Exception $ex) {
             DB::rollBack();
@@ -481,7 +481,7 @@ class UserController extends Controller
                     $user = User::create($params);
 
                     if (!$user) {
-                        throw new Exception('Failed to create user');
+                        throw new Exception('Gagal membuat pengguna baru.');
                     }
                     
                     $this->_syncUserAccess($user, []);
@@ -495,7 +495,7 @@ class UserController extends Controller
 
             return $this->successResponse(
                 null,
-                'User data imported successfully'
+                'Data pengguna berhasil diimpor.'
             );
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);

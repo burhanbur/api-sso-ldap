@@ -101,7 +101,7 @@ class UserRoleController extends Controller
             
             $response = $this->successResponse(
                 $userRole,
-                'Role user assigned successfully'
+                'Peran pengguna berhasil ditetapkan.'
             );
         } catch (Exception $ex) {
             DB::rollBack();
@@ -119,7 +119,7 @@ class UserRoleController extends Controller
             $userRole = UserRole::where('uuid', $uuid)->first();
 
             if (!$userRole) {
-                return $this->errorResponse('User role not found', 404);
+                return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
             }
 
             $appId = $userRole->app_id;
@@ -138,7 +138,7 @@ class UserRoleController extends Controller
 
             return $this->successResponse(
                 $data,
-                'User role revoked successfully'
+                'Peran pengguna berhasil dicabut.'
             );
         } catch (Exception $e) {
             DB::rollBack();

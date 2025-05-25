@@ -107,7 +107,7 @@ class RoleController extends Controller
 
             return $this->successResponse(
                 new RoleResource($role->load(['roleType', 'scopeType'])),
-                'Role created successfully',
+                'Peran baru berhasil dibuat.',
                 201
             );
         } catch (Exception $e) {
@@ -124,7 +124,7 @@ class RoleController extends Controller
                 ->first();
 
             if (!$role) {
-                return $this->errorResponse('Role not found', 404);
+                return $this->errorResponse('Data peran tidak ditemukan.', 404);
             }
             
             return $this->successResponse(
@@ -141,7 +141,7 @@ class RoleController extends Controller
         $role = Role::where('uuid', $uuid)->first();
 
         if (!$role) {
-            return $this->errorResponse('Role not found', 404);
+            return $this->errorResponse('Data peran tidak ditemukan.', 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -171,7 +171,7 @@ class RoleController extends Controller
 
             return $this->successResponse(
                 new RoleResource($role->load(['roleType', 'scopeType'])),
-                'Role updated successfully'
+                'Peran berhasil diperbarui.'
             );
         } catch (Exception $e) {
             DB::rollBack();
@@ -187,12 +187,12 @@ class RoleController extends Controller
             $role = Role::where('uuid', $uuid)->first();
 
             if (!$role) {
-                return $this->errorResponse('Role not found', 404);
+                return $this->errorResponse('Data peran tidak ditemukan.', 404);
             }
             
             // Check if role has any users
             if ($role->users()->exists()) {
-                return $this->errorResponse('Cannot delete role with assigned users', 422);
+                return $this->errorResponse('Tidak dapat menghapus peran karena masih ada pengguna yang menggunakan peran ini.', 422);
             }
 
             $role->delete();
@@ -201,7 +201,7 @@ class RoleController extends Controller
 
             return $this->successResponse(
                 null,
-                'Role deleted successfully'
+                'Peran berhasil dihapus.'
             );
         } catch (Exception $e) {
             DB::rollBack();

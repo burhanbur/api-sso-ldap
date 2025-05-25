@@ -21,13 +21,13 @@ class EnsureUserAppAccess
         $user = auth()->user();
 
         if (!$user) {
-            return $this->errorResponse('Unauthorized. User not authenticated.', 401);
+            return $this->errorResponse('Sesi Anda telah berakhir. Silakan login kembali.', 401);
         }
 
-        $clientId = $request->header('x-api-key');
+        $clientId = $request->header('Client-ID');
 
         if (!$clientId) {
-            return $this->errorResponse('Application client ID is required.', 400);
+            return $this->errorResponse('Client ID wajib diisi.', 400);
         }
 
         // Check if user has access to the application
@@ -39,7 +39,7 @@ class EnsureUserAppAccess
             ->exists();
 
         if (!$hasAccess) {
-            return $this->errorResponse('User does not have access to this application.', 403);
+            return $this->errorResponse('Anda tidak memiliki akses ke aplikasi ini.', 403);
         }
 
         return $next($request);

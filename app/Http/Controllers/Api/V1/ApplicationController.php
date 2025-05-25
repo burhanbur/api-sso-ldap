@@ -125,7 +125,7 @@ class ApplicationController extends Controller
 
             return $this->successResponse(
                 new ApplicationResource($application),
-                'Application created successfully',
+                'Aplikasi berhasil dibuat.',
                 201
             );
         } catch (Exception $e) {
@@ -140,7 +140,7 @@ class ApplicationController extends Controller
             $application = Application::where('uuid', $uuid)->first();
 
             if (!$application) {
-                return $this->errorResponse('Application not found', 404);
+                return $this->errorResponse('Data aplikasi tidak ditemukan.', 404);
             }
             
             return $this->successResponse(
@@ -157,7 +157,7 @@ class ApplicationController extends Controller
         $application = Application::where('uuid', $uuid)->first();
 
         if (!$application) {
-            return $this->errorResponse('Application not found', 404);
+            return $this->errorResponse('Data aplikasi tidak ditemukan.', 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -200,7 +200,7 @@ class ApplicationController extends Controller
 
             return $this->successResponse(
                 new ApplicationResource($application),
-                'Application updated successfully'
+                'Aplikasi berhasil diperbarui.'
             );
         } catch (Exception $e) {
             DB::rollBack();
@@ -216,12 +216,12 @@ class ApplicationController extends Controller
             $application = Application::where('uuid', $uuid)->first();
 
             if (!$application) {
-                return $this->errorResponse('Application not found', 404);
+                return $this->errorResponse('Data aplikasi tidak ditemukan.', 404);
             }
             
             // Check if application has any user roles
             if ($application->userRoles()->exists()) {
-                return $this->errorResponse('Cannot delete application with assigned user roles', 422);
+                return $this->errorResponse('Tidak dapat menghapus aplikasi karena masih ada pengguna yang menggunakan aplikasi ini.', 422);
             }
 
             // Delete image if exists
@@ -235,7 +235,7 @@ class ApplicationController extends Controller
 
             return $this->successResponse(
                 null,
-                'Application deleted successfully'
+                'Aplikasi berhasil dihapus.'
             );
         } catch (Exception $e) {
             DB::rollBack();
@@ -251,7 +251,7 @@ class ApplicationController extends Controller
             $application = Application::where('uuid', $uuid)->first();
 
             if (!$application) {
-                return $this->errorResponse('Application not found', 404);
+                return $this->errorResponse('Data aplikasi tidak ditemukan.', 404);
             }
             
             $application->update(['is_active' => !$application->is_active]);
@@ -260,7 +260,7 @@ class ApplicationController extends Controller
 
             return $this->successResponse(
                 new ApplicationResource($application),
-                'Application status updated successfully'
+                'Status aplikasi berhasil diperbarui.'
             );
         } catch (Exception $e) {
             DB::rollBack();
