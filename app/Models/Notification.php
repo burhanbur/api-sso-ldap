@@ -10,7 +10,7 @@ class Notification extends Model
     use HasFactory;
 
     protected $fillable = [
-        'uuid', 'user_id', 'app_id', 'type', 'subject', 'content', 'detail_url', 'is_read'
+        'uuid', 'user_id', 'app_id', 'type', 'subject', 'content', 'detail_url', 'is_read', 'read_at'
     ];
 
     public function user()

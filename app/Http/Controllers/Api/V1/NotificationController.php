@@ -72,7 +72,7 @@ class NotificationController extends Controller
                 'app_id' => $app->id,
                 'type' => $request->type, // info, success, warning, error
                 'subject' => $request->subject,
-                'content' => $request->text,
+                'content' => $request->content,
                 'detail_url' => $request->detail_url
             ]);
 
@@ -99,7 +99,7 @@ class NotificationController extends Controller
 
             $notification->update([
                 'is_read' => 1,
-                'read_at' => now()
+                'read_at' => date('Y-m-d H:i:s')
             ]);
 
             return $this->successResponse(
@@ -133,7 +133,7 @@ class NotificationController extends Controller
     {
         try {
             $userId = auth()->user()->id;
-            Notification::where('user_id', $userId)->update(['is_read' => true, 'read_at' => now()]);
+            Notification::where(['user_id' => $userId, 'is_read' => false])->update(['is_read' => true, 'read_at' => now()]);
 
             return $this->successResponse(null, 'All notifications marked as read');
         } catch (Exception $ex) {
