@@ -691,9 +691,13 @@ class AuthController extends Controller
             return $this->errorResponse($ex->getMessage(), 500);
         }
     }
-
+    
     /**
-     * Check session endpoint for the client application.
+     * Handle client application callback after SSO login.
+     *
+     * This API is called by client applications after the user has been redirected
+     * to the SSO login page and has been authenticated. The API verifies the
+     * token and returns the user information and application roles.
      *
      * This endpoint is used by the client application to validate the token and get the user information.
      * The token is validated by checking if it exists in Redis and matches the one stored in Redis.
@@ -706,12 +710,9 @@ class AuthController extends Controller
     public function checkSession(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'app_code' => 'required|string',
-            ]);
-
-            if ($validator->fails()) {
-                return $this->errorResponse('Application code is required', 400);
+            $clientId = $request->header('x-api-key');
+            if (!$clientId) {
+                return $this->errorResponse('Application client ID is required', 400);
             }
 
             $token = JWTAuth::getToken();
@@ -736,8 +737,8 @@ class AuthController extends Controller
 
             // Check if user has access to the requesting application
             $hasAccess = $user->userRoles()
-                ->whereHas('application', function ($query) use ($request) {
-                    $query->where('code', $request->app_code)
+                ->whereHas('application', function ($query) use ($clientId) {
+                    $query->where('client_id', $clientId)
                           ->where('is_active', true);
                 })
                 ->exists();
@@ -749,8 +750,8 @@ class AuthController extends Controller
             // Get user roles specific to this application
             $applicationRoles = $user->userRoles()
                 ->with(['role', 'entityType'])
-                ->whereHas('application', function ($query) use ($request) {
-                    $query->where('code', $request->app_code);
+                ->whereHas('application', function ($query) use ($clientId) {
+                    $query->where('code', $clientId);
                 })
                 ->get();
         

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\ApplicationController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientController;
 use App\Http\Controllers\Api\V1\EntityTypeController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\RoleTypeController;
 use App\Http\Controllers\Api\V1\ScopeController;
@@ -34,6 +35,17 @@ Route::group(['prefix' => 'v1'], function () {
         Route::group(['prefix' => 'client', 'middleware' => ['client.authorize']], function () {
             Route::get('users', [ClientController::class, 'getUserByCode']);
             Route::post('users', [ClientController::class, 'insertOrUpdateUser']);
+        });
+        
+        Route::group(['prefix' => 'notifications'], function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::post('/', [NotificationController::class, 'store']);
+            
+            Route::put('read-all', [NotificationController::class, 'markAllAsRead']);
+
+            Route::put('/{uuid}', [NotificationController::class, 'updateReadStatus']);
+            Route::delete('/{uuid}', [NotificationController::class, 'destroy']);
+
         });
 
         // User profile and personal routes

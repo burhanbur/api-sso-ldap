@@ -62,20 +62,20 @@ class ClientController extends Controller
     
     public function insertOrUpdateUser(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:255|in:student,staff',
+            'username' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors(), 422);
+        }
+
         try {
             DB::beginTransaction();
-
-            $validator = Validator::make($request->all(), [
-                'code' => 'required|string|max:255',
-                'name' => 'required|string|max:255',
-                'type' => 'required|string|max:255|in:student,staff',
-                'username' => 'nullable|string|max:255',
-                'email' => 'required|email|max:255',
-            ]);
-
-            if ($validator->fails()) {
-                return $this->errorResponse($validator->errors(), 422);
-            }
 
             $clientId = $request->header('x-api-key');
 
@@ -112,41 +112,30 @@ class ClientController extends Controller
                 }
 
                 $user->username = $username;
+                $user->full_name = $request->name;
+                $user->nickname = $request->input('nickname', $request->name);
+                $user->email = $request->email;
+                $user->alt_email = $request->input('alt_email');
                 $user->join_date = $request->input('join_date', now()->format('Y-m-d'));
                 $user->title = $request->input('title');
                 $user->status = $request->input('status', 'Aktif');
             }
-
-            // Update user data
-            $user->full_name = $request->name;
-            $user->nickname = $request->input('nickname', $request->name);
-            $user->email = $request->email;
-            $user->alt_email = $request->input('alt_email');
-            $user->updated_by = auth()->user()->id;
-
-            // Save user
+            
             $user->save();
 
             // Prepare roles data
-            $roleId = 2; // Default role for user
-            $entityTypeId = null;
-            $entityId = null;
-
             $userRole = UserRole::where('user_id', $user->id)
-                ->where('application_id', $application->id)
-                ->where( function ($query) use ($roleId) {
-                    $query->where('role_id', $roleId)->orWhere('role_id', 1);
-                })
+                ->where('app_id', $application->id)
                 ->first();
             
             if (!$userRole) {
                 $userRole = new UserRole();
                 $userRole->uuid = Str::uuid();
                 $userRole->user_id = $user->id;
-                $userRole->role_id = $roleId;
+                $userRole->role_id = 2; // Defult role for user
                 $userRole->app_id = $application->id;
-                $userRole->entity_type_id = $entityTypeId;
-                $userRole->entity_id = $entityId;
+                $userRole->entity_type_id = null;
+                $userRole->entity_id = null;
                 $userRole->assigned_by = auth()->user()->id;
                 $userRole->assigned_at = now();
                 $userRole->save();
