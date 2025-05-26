@@ -23,14 +23,15 @@ class NotificationResource extends JsonResource
             'application' => $this->whenLoaded('application', function () {
                 return [
                     'id' => $this->application->id,
+                    'uuid' => $this->application->uuid,
                     'code' => $this->application->code,
-                    'client_id' => $this->application->client_id,
                     'name' => $this->application->name,
                 ];
             }),
             'user' => $this->whenLoaded('user', function () {
                 return [
                     'id' => $this->user->id,
+                    'uuid' => $this->user->uuid,
                     'username' => $this->user->username,
                     'full_name' => $this->user->full_name,
                     'code' => $this->user->code,

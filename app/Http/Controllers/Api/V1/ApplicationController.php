@@ -107,8 +107,6 @@ class ApplicationController extends Controller
 
             $params = $validator->validated();
             $params['uuid'] = Str::uuid();
-            $params['client_id'] = $clientId;
-            $params['client_secret'] = $clientSecret;
             $params['code'] = strtolower($params['code']);
 
             // Handle image upload

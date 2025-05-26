@@ -24,16 +24,16 @@ class EnsureUserAppAccess
             return $this->errorResponse('Sesi Anda telah berakhir. Silakan login kembali.', 401);
         }
 
-        $clientId = $request->header('Client-ID');
+        $appId = $request->header('x-app-id');
 
-        if (!$clientId) {
-            return $this->errorResponse('Client ID wajib diisi.', 400);
+        if (!$appId) {
+            return $this->errorResponse('ID aplikasi wajib diisi.', 400);
         }
 
         // Check if user has access to the application
         $hasAccess = $user->userRoles()
-            ->whereHas('application', function ($query) use ($clientId) {
-                $query->where('client_id', $clientId)
+            ->whereHas('application', function ($query) use ($appId) {
+                $query->where('uuid', $appId)
                       ->where('is_active', true);
             })
             ->exists();

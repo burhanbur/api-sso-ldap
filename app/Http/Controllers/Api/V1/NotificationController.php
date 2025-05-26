@@ -60,14 +60,14 @@ class NotificationController extends Controller
         try {
             DB::beginTransaction();
 
-            $clientId = $request->header('Client-ID');
-            if (!$clientId) {
-                return $this->errorResponse('Client ID wajib diisi.', 400);
+            $appId = $request->header('x-app-id');
+            if (!$appId) {
+                return $this->errorResponse('ID aplikasi wajib diisi.', 400);
             }
 
-            $app = Application::where('client_id', $clientId)->first();
+            $app = Application::where('uuid', $appId)->first();
             if (!$app) {
-                return $this->errorResponse('Client ID aplikasi tidak ditemukan.', 404);
+                return $this->errorResponse('ID aplikasi tidak ditemukan.', 404);
             }
 
             $data = Notification::create([

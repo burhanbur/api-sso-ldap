@@ -77,12 +77,12 @@ class ClientController extends Controller
         try {
             DB::beginTransaction();
 
-            $clientId = $request->header('Client-ID');
+            $appId = $request->header('x-app-id');
 
-            // Find application by client_id
-            $application = Application::where('client_id', $clientId)->first();
+            // Find application by appId
+            $application = Application::where('uuid', $appId)->first();
             if (!$application) {
-                return $this->errorResponse('Client ID wajib diisi.', 404);
+                return $this->errorResponse('ID aplikasi wajib diisi.', 404);
             }
 
             // Find or create user

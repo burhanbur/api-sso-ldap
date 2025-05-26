@@ -710,9 +710,9 @@ class AuthController extends Controller
     public function checkSession(Request $request)
     {
         try {
-            $clientId = $request->header('Client-ID');
-            if (!$clientId) {
-                return $this->errorResponse('Client ID wajib diisi.', 400);
+            $appId = $request->header('x-app-id');
+            if (!$appId) {
+                return $this->errorResponse('ID aplikasi wajib diisi.', 400);
             }
 
             $token = JWTAuth::getToken();
@@ -737,8 +737,8 @@ class AuthController extends Controller
 
             // Check if user has access to the requesting application
             $hasAccess = $user->userRoles()
-                ->whereHas('application', function ($query) use ($clientId) {
-                    $query->where('client_id', $clientId)
+                ->whereHas('application', function ($query) use ($appId) {
+                    $query->where('uuid', $appId)
                           ->where('is_active', true);
                 })
                 ->exists();
@@ -750,8 +750,8 @@ class AuthController extends Controller
             // Get user roles specific to this application
             $applicationRoles = $user->userRoles()
                 ->with(['role', 'entityType'])
-                ->whereHas('application', function ($query) use ($clientId) {
-                    $query->where('code', $clientId);
+                ->whereHas('application', function ($query) use ($appId) {
+                    $query->where('uuid', $appId);
                 })
                 ->get();
         
