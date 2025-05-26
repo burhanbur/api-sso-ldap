@@ -1,10 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\V1\AuthController;
+
+require __DIR__.'/oauth.php';
 
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::post('/redirect', [AuthController::class, 'redirectLogin']);
