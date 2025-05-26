@@ -18,7 +18,7 @@
             </div>
             
             <div class="text-center">
-                <a href="/" class="text-blue-500 hover:text-blue-700">Back to Home</a>
+                <a href="{{ url('/') }}" class="text-blue-500 hover:text-blue-700">Back to Home</a>
             </div>
         </div>
     </div>

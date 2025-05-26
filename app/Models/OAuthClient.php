@@ -10,6 +10,8 @@ class OAuthClient extends Model
 {
     use HasUuids, SoftDeletes;
 
+    protected $table = 'oauth_clients';
+
     protected $fillable = [
         'name',
         'client_id',

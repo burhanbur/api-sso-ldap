@@ -9,6 +9,8 @@ class OAuthAccessToken extends Model
 {
     use HasUuids;
 
+    protected $table = 'oauth_access_tokens';
+
     protected $fillable = [
         'user_id',
         'client_id',

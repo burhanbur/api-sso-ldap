@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\OAuthAccessToken;
 use App\Models\OAuthClient;
+use App\Models\User;
 use App\Utilities\Ldap;
 use App\Utilities\Utils;
 
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -28,7 +30,8 @@ class OAuthController extends Controller
     public function showLoginForm(Request $request)
     {
         $clientId = $request->query('client_id');
-        $client = OAuthClient::where('client_id', $clientId)->firstOrFail();
+        $client = OAuthClient::where('client_id', $clientId)->first();
+        $redirect_uri = $client->redirect_uri ?? '';
 
         return view('oauth.login');
     }
@@ -42,7 +45,11 @@ class OAuthController extends Controller
         ]);
 
         // Verify client
-        $client = OAuthClient::where('client_id', $request->client_id)->firstOrFail();
+        $client = OAuthClient::where('client_id', $request->client_id)->first();
+
+        if (!$client) {
+            return redirect()->route('oauth.error', ['error' => 'invalid_client']);
+        }
 
         // Get OAuth request from session
         $oauthRequest = session('oauth_request');
@@ -53,7 +60,13 @@ class OAuthController extends Controller
         try {
             // Authenticate using LDAP
             $ldap = new Ldap();
-            $user = $ldap->authenticate($request->username, $request->password);
+            $bind = $ldap->bind($request->username, $request->password);
+            
+            if (!$bind) {
+                throw new Exception('Invalid credentials');
+            }
+
+            $user = User::where('username', $request->username)->first();
 
             if ($user) {
                 Auth::login($user);
@@ -61,7 +74,7 @@ class OAuthController extends Controller
                 // Redirect back to authorization endpoint
                 return redirect()->route('oauth.authorize', $oauthRequest);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->withErrors(['username' => 'Invalid credentials']);
         }
 
