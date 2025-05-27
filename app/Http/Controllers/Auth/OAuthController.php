@@ -27,7 +27,7 @@ use Illuminate\Support\Str;
 
 class OAuthController extends Controller
 {
-    public function showLoginForm(Request $request)
+    public function loginForm(Request $request)
     {
         $clientId = $request->query('client_id');
         $client = OAuthClient::where('client_id', $clientId)->first();

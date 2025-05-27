@@ -10,7 +10,7 @@ Route::group(['prefix' => 'oauth'], function () {
         Route::get('userinfo', [OAuthController::class, 'userinfo']);
     });
 
-    Route::get('login', [OAuthController::class, 'showLoginForm'])->name('oauth.login');
+    Route::get('login', [OAuthController::class, 'loginForm'])->name('oauth.login');
     Route::post('login', [OAuthController::class, 'login']);
     Route::get('authorize', [OAuthController::class, 'authorize'])->name('oauth.authorize');
     Route::post('token', [OAuthController::class, 'token'])->name('oauth.token');
