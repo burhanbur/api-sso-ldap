@@ -22,10 +22,40 @@ use App\Traits\ApiResponse;
 
 use Exception;
 
+/**
+ * @OA\Tag(
+ *     name="Notifications",
+ *     description="API Endpoints for notification management"
+ * )
+ */
 class NotificationController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/notifications",
+     *     summary="Get list of notifications for authenticated user",
+     *     tags={"Notifications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of notifications retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Notifications retrieved successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/NotificationResource"))
+     *         )
+     *     )
+     * )
+     */
     public function index(Request $request)
     {
         try {
@@ -44,6 +74,34 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/notifications",
+     *     summary="Create a new notification",
+     *     tags={"Notifications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"type","subject","content"},
+     *             @OA\Property(property="type", type="string", example="info"),
+     *             @OA\Property(property="subject", type="string", example="New Message"),
+     *             @OA\Property(property="content", type="string", example="You have a new message"),
+     *             @OA\Property(property="detail_url", type="string", example="/messages/123"),
+     *             @OA\Property(property="app_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Notification created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Notification created successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/NotificationResource")
+     *         )
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -93,6 +151,29 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/notifications/{uuid}/read",
+     *     summary="Mark a notification as read",
+     *     tags={"Notifications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="Notification UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Notification marked as read successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Notification marked as read successfully")
+     *         )
+     *     )
+     * )
+     */
     public function updateReadStatus(Request $request, $uuid)
     {
         try {
@@ -116,6 +197,29 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/notifications/{uuid}",
+     *     summary="Delete a notification",
+     *     tags={"Notifications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="Notification UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Notification deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Notification deleted successfully")
+     *         )
+     *     )
+     * )
+     */
     public function destroy($uuid)
     {
         try {
@@ -133,6 +237,22 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/notifications/mark-all-read",
+     *     summary="Mark all notifications as read",
+     *     tags={"Notifications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="All notifications marked as read successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="All notifications marked as read successfully")
+     *         )
+     *     )
+     * )
+     */
     public function markAllAsRead()
     {
         try {

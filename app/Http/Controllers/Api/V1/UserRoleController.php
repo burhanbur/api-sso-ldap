@@ -24,10 +24,61 @@ use App\Traits\ApiResponse;
 
 use Exception;
 
+/**
+ * @OA\Tag(
+ *     name="User Roles",
+ *     description="API Endpoints for user role management"
+ * )
+ */
 class UserRoleController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/user-roles",
+     *     summary="Get list of user roles",
+     *     tags={"User Roles"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="user_id",
+     *         in="query",
+     *         description="Filter by user ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="app_id",
+     *         in="query",
+     *         description="Filter by application ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="role_id",
+     *         in="query",
+     *         description="Filter by role ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of user roles retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User roles retrieved successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserRoleResource"))
+     *         )
+     *     )
+     * )
+     */
     public function index(Request $request)
     {
         try {
@@ -56,6 +107,35 @@ class UserRoleController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/user-roles",
+     *     summary="Assign a role to a user",
+     *     tags={"User Roles"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"user_id", "role_id", "app_id"},
+     *             @OA\Property(property="user_id", type="integer", example=1),
+     *             @OA\Property(property="role_id", type="integer", example=1),
+     *             @OA\Property(property="app_id", type="integer", example=1),
+     *             @OA\Property(property="entity_type_id", type="integer", example=1),
+     *             @OA\Property(property="entity_id", type="string", example="DEPT001"),
+     *             @OA\Property(property="assigned_by", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Role assigned to user successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Role assigned to user successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserRoleResource")
+     *         )
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -111,6 +191,29 @@ class UserRoleController extends Controller
         return $response;
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/user-roles/{uuid}",
+     *     summary="Remove a role from a user",
+     *     tags={"User Roles"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="User Role UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Role removed from user successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Role removed from user successfully")
+     *         )
+     *     )
+     * )
+     */
     public function destroy($uuid)
     {
         try {

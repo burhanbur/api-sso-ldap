@@ -23,10 +23,47 @@ use App\Traits\ApiResponse;
 
 use Exception;
 
+/**
+ * @OA\Tag(
+ *     name="Applications",
+ *     description="API Endpoints for application management"
+ * )
+ */
 class ApplicationController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/applications",
+     *     summary="Get list of applications",
+     *     tags={"Applications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search applications by name or code",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of applications retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Applications retrieved successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/ApplicationResource"))
+     *         )
+     *     )
+     * )
+     */
     public function index(Request $request)
     {
         try {
@@ -81,6 +118,38 @@ class ApplicationController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/applications",
+     *     summary="Create a new application",
+     *     tags={"Applications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"code","name","base_url"},
+     *             @OA\Property(property="code", type="string", example="APP001"),
+     *             @OA\Property(property="name", type="string", example="My Application"),
+     *             @OA\Property(property="alias", type="string", example="MyApp"),
+     *             @OA\Property(property="description", type="string", example="Description of the application"),
+     *             @OA\Property(property="base_url", type="string", example="https://myapp.example.com"),
+     *             @OA\Property(property="login_url", type="string", example="https://myapp.example.com/login"),
+     *             @OA\Property(property="platform_type", type="string", example="web"),
+     *             @OA\Property(property="visibility", type="string", example="public"),
+     *             @OA\Property(property="is_active", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Application created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Application created successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/ApplicationResource")
+     *         )
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -132,6 +201,30 @@ class ApplicationController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/applications/{uuid}",
+     *     summary="Get application details",
+     *     tags={"Applications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="Application UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Application details retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Application details retrieved successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/ApplicationResource")
+     *         )
+     *     )
+     * )
+     */
     public function show($uuid)
     {
         try {
@@ -150,6 +243,43 @@ class ApplicationController extends Controller
         }
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/v1/applications/{uuid}",
+     *     summary="Update application details",
+     *     tags={"Applications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="Application UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Updated Application"),
+     *             @OA\Property(property="alias", type="string", example="UpdatedApp"),
+     *             @OA\Property(property="description", type="string", example="Updated description"),
+     *             @OA\Property(property="base_url", type="string", example="https://updated-app.example.com"),
+     *             @OA\Property(property="login_url", type="string", example="https://updated-app.example.com/login"),
+     *             @OA\Property(property="platform_type", type="string", example="web"),
+     *             @OA\Property(property="visibility", type="string", example="public"),
+     *             @OA\Property(property="is_active", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Application updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Application updated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/ApplicationResource")
+     *         )
+     *     )
+     * )
+     */
     public function update(Request $request, $uuid)
     {
         $application = Application::where('uuid', $uuid)->first();
@@ -206,6 +336,29 @@ class ApplicationController extends Controller
         }
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/applications/{uuid}",
+     *     summary="Delete an application",
+     *     tags={"Applications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="Application UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Application deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Application deleted successfully")
+     *         )
+     *     )
+     * )
+     */
     public function destroy($uuid)
     {
         try {

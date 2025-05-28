@@ -27,10 +27,60 @@ use Maatwebsite\Excel\Facades\Excel;
 
 use Exception;
 
+/**
+ * @OA\Tag(
+ *     name="Users",
+ *     description="API Endpoints for user management"
+ * )
+ */
 class UserController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/users",
+     *     summary="Get list of users",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search users by name, email, or username",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of users retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Users retrieved successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserResource")),
+     *             @OA\Property(property="pagination", type="object",
+     *                 @OA\Property(property="total", type="integer", example=100),
+     *                 @OA\Property(property="per_page", type="integer", example=10),
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=10)
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function index(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -85,6 +135,30 @@ class UserController extends Controller
         return $response;
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/users/{uuid}",
+     *     summary="Get user details",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="User UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User details retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User details retrieved successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
+     *         )
+     *     )
+     * )
+     */
     public function show($uuid)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -107,6 +181,37 @@ class UserController extends Controller
         return $response;
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/users",
+     *     summary="Create a new user",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"username","email","full_name"},
+     *             @OA\Property(property="username", type="string", example="john.doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+     *             @OA\Property(property="full_name", type="string", example="John Doe"),
+     *             @OA\Property(property="nickname", type="string", example="John"),
+     *             @OA\Property(property="alt_email", type="string", format="email", example="john.alt@example.com"),
+     *             @OA\Property(property="join_date", type="string", format="date", example="2023-01-01"),
+     *             @OA\Property(property="title", type="string", example="Software Engineer"),
+     *             @OA\Property(property="status", type="string", example="active")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User created successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
+     *         )
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -183,6 +288,42 @@ class UserController extends Controller
         return $response;
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/v1/users/{uuid}",
+     *     summary="Update user details",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="User UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+     *             @OA\Property(property="full_name", type="string", example="John Doe"),
+     *             @OA\Property(property="nickname", type="string", example="John"),
+     *             @OA\Property(property="alt_email", type="string", format="email", example="john.alt@example.com"),
+     *             @OA\Property(property="join_date", type="string", format="date", example="2023-01-01"),
+     *             @OA\Property(property="title", type="string", example="Software Engineer"),
+     *             @OA\Property(property="status", type="string", example="active")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User updated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
+     *         )
+     *     )
+     * )
+     */
     public function update(Request $request, $uuid)
     {
         $response = $this->errorResponse($this->errMessage);
