@@ -101,7 +101,18 @@ class AuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => $expiredIn,
             'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
-        ]);
+        ])
+        ->cookie(
+            'access_token', // nama cookie
+            $token, // nilai token
+            $expiredIn / 60, // durasi dalam menit
+            '/', // path
+            env('COOKIE_DOMAIN'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+            env('COOKIE_SECURE'), // secure (gunakan true (HTTPS) di produksi)
+            true, // httpOnly (tidak bisa dibaca JS)
+            false, // raw
+            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+        );
     }
 
     /**
@@ -133,6 +144,17 @@ class AuthController extends Controller
             return $this->successResponse(
                 null,
                 'Sesi Anda telah berakhir.'
+            )
+            ->cookie(
+                'access_token', // nama cookie
+                '', // nilai kosong untuk menghapus cookie
+                -1, // durasi negatif untuk menghapus cookie
+                '/', // path
+                env('COOKIE_DOMAIN'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                env('COOKIE_SECURE'), // secure (gunakan true (HTTPS) di produksi)
+                true, // httpOnly (tidak bisa dibaca JS)
+                false, // raw
+                'Lax' // SameSite ('Strict', 'Lax' atau 'None')
             );
         } catch (Exception $ex) {
             return $this->errorResponse($ex->getMessage(), 500);
@@ -430,7 +452,18 @@ class AuthController extends Controller
                 'token_type' => 'bearer',
                 'expires_in' => $expiredIn,
                 'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
-            ]);
+            ])
+            ->cookie(
+                'access_token', // nama cookie
+                $newToken, // nilai token
+                $expiredIn / 60, // durasi dalam menit
+                '/', // path
+                env('COOKIE_DOMAIN'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                env('COOKIE_SECURE'), // secure (gunakan true (HTTPS) di produksi)
+                true, // httpOnly (tidak bisa dibaca JS)
+                false, // raw
+                'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+            );
         } catch (Exception $ex) {
             return $this->errorResponse('Sesi Anda telah berakhir. Silakan login kembali.', 401);
         }
@@ -541,39 +574,6 @@ class AuthController extends Controller
             'Berhasil mengakhiri impersonasi sebagai ' . $current->full_name . '.'
         );
     }
-
-    /**
-     * Check if the session is valid.
-     *
-     * This endpoint checks if the token in the Authorization header is valid and matches the one stored in Redis.
-     * If the token is invalid or does not match the one in Redis, a 401 Unauthorized response is returned.
-     * If the token is valid, a 200 OK response with the user's data is returned.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    /* public function checkSession()
-    {
-        try {
-            $token = JWTAuth::getToken()->get();
-            $user = JWTAuth::parseToken()->authenticate();
-            $now = now()->timestamp;
-
-            // Periksa token di sorted set dengan memastikan skornya masih valid
-            $expiryTime = Redis::zscore("user_tokens:{$user->uuid}", $token);
-            
-            if (!$expiryTime || $expiryTime < $now) {
-                // Token tidak ditemukan atau sudah expired
-                return $this->errorResponse('Session invalid or expired', 401);
-            }
-            
-            return $this->successResponse(
-                new UserResource($user), 
-                'Session check successful'
-            );
-        } catch (Exception $ex) {
-            return $this->errorResponse('Session check failed: ' . $ex->getMessage(), 401);
-        }
-    } */
 
     /**
      * Log out the user from all devices except the current one.
@@ -751,117 +751,6 @@ class AuthController extends Controller
             );
         } catch (Exception $ex) {
             return $this->errorResponse($ex->getMessage(), 500);
-        }
-    }
-    
-    /**
-     * Handle client application callback after SSO login.
-     *
-     * This API is called by client applications after the user has been redirected
-     * to the SSO login page and has been authenticated. The API verifies the
-     * token and returns the user information and application roles.
-     *
-     * This endpoint is used by the client application to validate the token and get the user information.
-     * The token is validated by checking if it exists in Redis and matches the one stored in Redis.
-     * If the token is invalid or does not match the one in Redis, a 401 Unauthorized response is returned.
-     * If the token is valid, a 200 OK response with the user's data is returned.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function checkSession(Request $request)
-    {
-        try {
-            $appId = $request->header('x-app-id');
-            if (!$appId) {
-                return $this->errorResponse('ID aplikasi wajib diisi.', 400);
-            }
-
-            $token = JWTAuth::getToken();
-            if (!$token) {
-                return $this->errorResponse('Token wajib diisi.', 400);
-            }
-            
-            // Validate token
-            JWTAuth::setToken($token);
-            $user = JWTAuth::parseToken()->authenticate();
-            $tokenString = $token->get();
-            $now = now()->timestamp;
-            
-            // Check if token exists in Redis and is still valid
-            $expiryTime = Redis::zscore("user_tokens:{$user->uuid}", $tokenString);
-            if (!$expiryTime || $expiryTime < $now) {
-                return $this->errorResponse('Token yang digunakan tidak berlaku atau sudah habis masa berlakunya.', 401);
-            }
-
-            // Load user relationships needed by client applications
-            $user->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);
-
-            // Check if user has access to the requesting application
-            $hasAccess = $user->userRoles()
-                ->whereHas('application', function ($query) use ($appId) {
-                    $query->where('uuid', $appId)
-                          ->where('is_active', true);
-                })
-                ->exists();
-
-            if (!$hasAccess) {
-                return $this->errorResponse('Akses ke aplikasi ini tidak diizinkan untuk pengguna ini.', 403);
-            }
-
-            // Get user roles specific to this application
-            $applicationRoles = $user->userRoles()
-                ->with(['role', 'entityType'])
-                ->whereHas('application', function ($query) use ($appId) {
-                    $query->where('uuid', $appId);
-                })
-                ->get();
-        
-            // Get token details
-            $details = Redis::get("token_details:{$tokenString}");
-            $isImpersonation = false;
-            $impersonatedBy = null;
-            
-            if ($details) {
-                $details = json_decode($details, true);
-                if (isset($details['is_impersonation']) && $details['is_impersonation']) {
-                    $isImpersonation = true;
-                    $adminUser = User::where('uuid', $details['impersonated_by'])->first();
-                    $impersonatedBy = $adminUser ? $adminUser->name : 'Unknown Admin';
-                }
-            }
-            
-            // Return user information for the client application
-            $response = [
-                'user' => new UserResource($user),
-                'access_token' => $tokenString,
-                'token_type' => 'bearer',
-                'expires_in' => ($expiryTime - $now),
-                'formatted_expires_in' => Carbon::createFromTimestamp($expiryTime)->format('Y-m-d H:i:s'),
-                'sso_session_valid' => true,
-                'application_roles' => $applicationRoles->map(function ($userRole) {
-                    return [
-                        'role' => [
-                            'name' => $userRole->role->name,
-                            'display_name' => $userRole->role->display_name,
-                        ],
-                        'entity_type' => $userRole->entityType ? [
-                            'name' => $userRole->entityType->name,
-                            'code' => $userRole->entityType->code,
-                        ] : null,
-                        'entity_id' => $userRole->entity_id,
-                    ];
-                })
-            ];
-            
-            if ($isImpersonation) {
-                $response['is_impersonation'] = true;
-                $response['impersonated_by'] = $impersonatedBy;
-            }
-            
-            return $this->successResponse($response, 'Callback successful');
-        } catch (Exception $e) {
-            return $this->errorResponse('Callback failed: ' . $e->getMessage(), 500);
         }
     }
 }

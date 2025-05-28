@@ -15,11 +15,13 @@ use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UserRoleController;
 
 Route::group(['prefix' => 'v1'], function () {
+    Route::get('client/callback', [ClientController::class, 'callback']);
+    Route::post('client/session', [ClientController::class, 'checkSession']);
+
     // Public routes (no auth required)
     Route::group(['prefix' => 'auth'], function () {
         Route::post('login', [AuthController::class, 'login']);
         Route::post('logout', [AuthController::class, 'logout']);
-        Route::post('session', [AuthController::class, 'checkSession']);
         Route::post('password/forgot', [AuthController::class, 'forgotPassword']);
         Route::post('password/reset', [AuthController::class, 'resetPassword']);
     });
@@ -31,10 +33,13 @@ Route::group(['prefix' => 'v1'], function () {
 
     // Authenticated user routes
     Route::group(['middleware' => ['jwt.auth']], function () {
-        // Client routes
-        Route::group(['prefix' => 'client', 'middleware' => ['client.authorize']], function () {
-            Route::get('users', [ClientController::class, 'getUserByCode']);
-            Route::post('users', [ClientController::class, 'insertOrUpdateUser']);
+
+        // Client routes (Non-SSO Routes)
+        Route::group(['prefix' => 'client'], function () {
+            Route::group(['middleware' => ['client.authorize']], function () {
+                Route::get('users', [ClientController::class, 'getUserByCode']);
+                Route::post('users', [ClientController::class, 'insertOrUpdateUser']);
+            });
         });
         
         Route::group(['prefix' => 'notifications'], function () {
