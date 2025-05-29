@@ -107,8 +107,8 @@ class AuthController extends Controller
             $token, // nilai token
             $expiredIn / 60, // durasi dalam menit
             '/', // path
-            env('COOKIE_DOMAIN'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-            env('COOKIE_SECURE'), // secure (gunakan true (HTTPS) di produksi)
+            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
             true, // httpOnly (tidak bisa dibaca JS)
             false, // raw
             'Lax' // SameSite ('Strict', 'Lax' atau 'None')
@@ -150,8 +150,8 @@ class AuthController extends Controller
                 '', // nilai kosong untuk menghapus cookie
                 -1, // durasi negatif untuk menghapus cookie
                 '/', // path
-                env('COOKIE_DOMAIN'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-                env('COOKIE_SECURE'), // secure (gunakan true (HTTPS) di produksi)
+                config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
                 true, // httpOnly (tidak bisa dibaca JS)
                 false, // raw
                 'Lax' // SameSite ('Strict', 'Lax' atau 'None')
@@ -214,7 +214,7 @@ class AuthController extends Controller
 
             // Send reset email
             Mail::send('emails.reset-password', [
-                'url' => env('VITE_APP_URL'),
+                'url' => config('central.auth_url'),
                 'full_name' => $user->full_name,
                 'email' => $user->email,
                 'token' => $token,
@@ -458,8 +458,8 @@ class AuthController extends Controller
                 $newToken, // nilai token
                 $expiredIn / 60, // durasi dalam menit
                 '/', // path
-                env('COOKIE_DOMAIN'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-                env('COOKIE_SECURE'), // secure (gunakan true (HTTPS) di produksi)
+                config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
                 true, // httpOnly (tidak bisa dibaca JS)
                 false, // raw
                 'Lax' // SameSite ('Strict', 'Lax' atau 'None')
@@ -532,6 +532,18 @@ class AuthController extends Controller
                 'impersonated_user' => $target,
             ],
             'Berhasil impersonasi sebagai ' . $target->full_name . '.'
+        )
+        ->cookie(
+            'access_token', // nama cookie
+            $token, // nilai token
+            $ttl / 60, // durasi dalam menit
+            '/', // path
+            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+            true, // httpOnly (tidak bisa dibaca JS)
+            false, // raw
+            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+
         );
     }
 
@@ -561,17 +573,30 @@ class AuthController extends Controller
         JWTAuth::invalidate(JWTAuth::getToken());
         $adminToken = JWTAuth::fromUser($admin);
         Utils::getInstance()->storeTokenInRedis($admin->uuid, $adminToken);
+        $expiresIn = JWTAuth::factory()->getTTL() * 60;
 
         return $this->successResponse(
             [
                 'access_token' => $adminToken,
                 'token_type' => 'bearer',
-                'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'expires_in' => $expiresIn,
                 'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
                 'impersonated_user' => $current,
                 'original_user' => $admin,
             ],
             'Berhasil mengakhiri impersonasi sebagai ' . $current->full_name . '.'
+        )
+        ->cookie(
+            'access_token', // nama cookie
+            $adminToken, // nilai token
+            $expiresIn / 60, // durasi dalam menit
+            '/', // path
+            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+            true, // httpOnly (tidak bisa dibaca JS)
+            false, // raw
+            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+
         );
     }
 

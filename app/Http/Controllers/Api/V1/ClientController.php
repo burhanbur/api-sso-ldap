@@ -87,7 +87,7 @@ class ClientController extends Controller
             }
 
             // Redirect to the client application with the token
-            return Redirect::to($redirectUrl . '?token_login=' . $token);
+            return Redirect::to($redirectUrl . '?access_token=' . $token);
         } catch (Exception $ex) {
             Log::error('Error during SSO login: ' . $ex->getMessage());
             return Redirect::to(env('CENTRAL_AUTH_URL'));
@@ -132,11 +132,6 @@ class ClientController extends Controller
             
             JWTAuth::setToken($tokenString);
             $user = JWTAuth::authenticate();
-
-            // return response()->json([
-            //     'secret_1' => $secret,
-            //     // 'secret_2' => $secret2
-            // ]);
 
             $now = now()->timestamp;
             // Check if token exists in Redis and is still valid
@@ -214,6 +209,47 @@ class ClientController extends Controller
         } catch (Exception $ex) {
             Log::error('Error during SSO validation: ' . $ex->getMessage());
             return $this->errorResponse('Token validation failed: ' . $ex->getMessage(), 500);
+        }
+    }
+
+    public function clearSession(Request $request)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+            $token = JWTAuth::getToken();
+
+            Utils::getInstance()->removeTokenFromRedis($user->uuid, $token->get());
+
+            JWTAuth::invalidate($token);
+
+            if (isset($_SERVER['HTTP_COOKIE'])){                 
+                $cookies = explode(';', $_SERVER['HTTP_COOKIE']);                 
+                foreach ($cookies as $cookie)                 
+                {                     
+                    $parts = explode('=', $cookie);                     
+                    $name = trim($parts[0]);                     
+                    setcookie($name, '', time() - 1000);                     
+                    setcookie($name, '', time() - 1000, '/');                 
+                }             
+            }
+
+            return $this->successResponse(
+                null,
+                'Sesi Anda telah berakhir.'
+            )
+            ->cookie(
+                'access_token', // nama cookie
+                '', // nilai kosong untuk menghapus cookie
+                -1, // durasi negatif untuk menghapus cookie
+                '/', // path
+                env('COOKIE_DOMAIN'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                env('COOKIE_SECURE'), // secure (gunakan true (HTTPS) di produksi)
+                true, // httpOnly (tidak bisa dibaca JS)
+                false, // raw
+                'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+            );
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex->getMessage(), 500);
         }
     }
 

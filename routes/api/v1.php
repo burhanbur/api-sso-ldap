@@ -37,6 +37,7 @@ Route::group(['prefix' => 'v1'], function () {
         // Client routes (Non-SSO Routes)
         Route::group(['prefix' => 'client'], function () {
             Route::group(['middleware' => ['client.authorize']], function () {
+                Route::get('session', [ClientController::class, 'clearSession']);
                 Route::get('users', [ClientController::class, 'getUserByCode']);
                 Route::post('users', [ClientController::class, 'insertOrUpdateUser']);
             });
