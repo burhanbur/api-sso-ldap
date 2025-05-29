@@ -543,7 +543,17 @@ class AuthController extends Controller
             true, // httpOnly (tidak bisa dibaca JS)
             false, // raw
             'Lax' // SameSite ('Strict', 'Lax' atau 'None')
-
+        )
+        ->cookie(
+            'impersonated_by', // nama cookie
+            $admin->uuid, // nilai token
+            $ttl / 60, // durasi dalam menit
+            '/', // path
+            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+            true, // httpOnly (tidak bisa dibaca JS)
+            false, // raw
+            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
         );
     }
 
@@ -597,6 +607,17 @@ class AuthController extends Controller
             false, // raw
             'Lax' // SameSite ('Strict', 'Lax' atau 'None')
 
+        )
+        ->cookie(
+            'impersonated_by', // nama cookie
+            '', // nilai kosong untuk menghapus cookie
+            -1, // durasi negatif untuk menghapus cookie
+            '/', // path
+            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+            true, // httpOnly (tidak bisa dibaca JS)
+            false, // raw
+            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
         );
     }
 
