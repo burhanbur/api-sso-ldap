@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
+            'jwt.custom' => \App\Http\Middleware\JwtCustom::class,
             'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
             'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
             'sso.admin' => \App\Http\Middleware\EnsureSsoAdmin::class,

@@ -20,7 +20,7 @@ return [
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['Content-Type', 'x-app-id', 'Authorization'],
+    'allowed_headers' => ['Content-Type', 'x-app-id', 'Authorization', 'X-Requested-With'],
 
     'exposed_headers' => [],
 

@@ -97,6 +97,7 @@ class AuthController extends Controller
         Utils::getInstance()->storeTokenInRedis($user->uuid, $token);
 
         return response()->json([
+            'success' => true,
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => $expiredIn,
@@ -105,7 +106,7 @@ class AuthController extends Controller
         ->cookie(
             'access_token', // nama cookie
             $token, // nilai token
-            $expiredIn / 60, // durasi dalam menit
+            config('jwt.ttl'), // durasi dalam menit
             '/', // path
             config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
             config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
@@ -134,15 +135,17 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            $user = JWTAuth::parseToken()->authenticate();
-            $token = JWTAuth::getToken();
+            $user = auth()->user();
+            $token = JWTAuth::getToken() ? JWTAuth::getToken()->get() : $request->cookie('access_token');
 
-            Utils::getInstance()->removeTokenFromRedis($user->uuid, $token->get());
+            Utils::getInstance()->removeTokenFromRedis($user->uuid, $token);
 
             JWTAuth::invalidate($token);
 
             return $this->successResponse(
-                null,
+                [
+                    'success' => true
+                ],
                 'Sesi Anda telah berakhir.'
             )
             ->cookie(
@@ -448,6 +451,7 @@ class AuthController extends Controller
             Utils::getInstance()->storeTokenInRedis($user->uuid, $newToken);
             
             return response()->json([
+                'success' => true,
                 'access_token' => $newToken,
                 'token_type' => 'bearer',
                 'expires_in' => $expiredIn,
@@ -456,7 +460,7 @@ class AuthController extends Controller
             ->cookie(
                 'access_token', // nama cookie
                 $newToken, // nilai token
-                $expiredIn / 60, // durasi dalam menit
+                config('jwt.ttl'), // durasi dalam menit
                 '/', // path
                 config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
                 config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
@@ -474,12 +478,19 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function me()
+    public function me(Request $request)
     {
         $user = auth()->user()->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);
 
+        $payload = JWTAuth::getPayload();
+        if ($payload->get('impersonated_by')) {
+            $user->impersonated_by = $payload->get('impersonated_by');
+            $user->is_impersonated = true;
+        }
+
         return $this->successResponse(
             new UserResource($user),
+            // $user,
             'User data retrieved successfully'
         );
     }
@@ -525,6 +536,7 @@ class AuthController extends Controller
 
         return $this->successResponse(
             [
+                'success' => true,
                 'access_token' => $token,
                 'token_type' => 'bearer',
                 'expires_in' => $ttl,
@@ -536,7 +548,7 @@ class AuthController extends Controller
         ->cookie(
             'access_token', // nama cookie
             $token, // nilai token
-            $ttl / 60, // durasi dalam menit
+            config('jwt.ttl'), // durasi dalam menit
             '/', // path
             config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
             config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
@@ -547,7 +559,7 @@ class AuthController extends Controller
         ->cookie(
             'impersonated_by', // nama cookie
             $admin->uuid, // nilai token
-            $ttl / 60, // durasi dalam menit
+            config('jwt.ttl'), // durasi dalam menit
             '/', // path
             config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
             config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
@@ -581,12 +593,20 @@ class AuthController extends Controller
 
         Utils::getInstance()->removeTokenFromRedis($current->uuid, $token);
         JWTAuth::invalidate(JWTAuth::getToken());
-        $adminToken = JWTAuth::fromUser($admin);
+
+        /** 
+         * 
+         * kenapa ketika assign token baru, ada custom claims yang ikut terbawa dari token sebelumnya?
+        */
+
+        // assign new token
+        $adminToken = JWTAuth::claims(['impersonated_by' => null, 'is_impersonation' => false])->fromUser($admin);
         Utils::getInstance()->storeTokenInRedis($admin->uuid, $adminToken);
         $expiresIn = JWTAuth::factory()->getTTL() * 60;
 
         return $this->successResponse(
             [
+                'success' => true,
                 'access_token' => $adminToken,
                 'token_type' => 'bearer',
                 'expires_in' => $expiresIn,
@@ -599,7 +619,7 @@ class AuthController extends Controller
         ->cookie(
             'access_token', // nama cookie
             $adminToken, // nilai token
-            $expiresIn / 60, // durasi dalam menit
+            config('jwt.ttl'), // durasi dalam menit
             '/', // path
             config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
             config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)

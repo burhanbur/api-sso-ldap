@@ -26,6 +26,8 @@ class UserResource extends JsonResource
             'join_date' => $this->join_date,
             'title' => $this->title,
             'status' => $this->status,
+            'is_impersonated' => $this->when($this->is_impersonated, true),
+            'impersonated_by' => $this->when($this->impersonated_by, $this->impersonated_by),
             'app_access' => $this->whenLoaded('userRoles', function () {
                 return $this->userRoles
                     ->groupBy(fn ($role) => $role->application->code ?? 'unknown')

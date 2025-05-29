@@ -21,7 +21,7 @@ Route::group(['prefix' => 'v1'], function () {
     // Public routes (no auth required)
     Route::group(['prefix' => 'auth'], function () {
         Route::post('login', [AuthController::class, 'login']);
-        Route::post('logout', [AuthController::class, 'logout']);
+        Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt.custom');
         Route::post('password/forgot', [AuthController::class, 'forgotPassword']);
         Route::post('password/reset', [AuthController::class, 'resetPassword']);
     });
@@ -32,7 +32,7 @@ Route::group(['prefix' => 'v1'], function () {
     });
 
     // Authenticated user routes
-    Route::group(['middleware' => ['jwt.auth']], function () {
+    Route::group(['middleware' => ['jwt.custom']], function () {
 
         // Client routes (Non-SSO Routes)
         Route::group(['prefix' => 'client'], function () {
