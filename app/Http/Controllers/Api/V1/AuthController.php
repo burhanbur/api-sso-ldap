@@ -96,17 +96,18 @@ class AuthController extends Controller
 
         Utils::getInstance()->storeTokenInRedis($user->uuid, $token);
 
-        return response()->json([
+        $response = response()->json([
             'success' => true,
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => $expiredIn,
             'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
-        ])
-        ->cookie(
+        ]);
+
+        $response->cookie(
             'access_token', // nama cookie
             $token, // nilai token
-            config('jwt.ttl'), // durasi dalam menit
+            config('jwt.refresh_ttl'), // durasi dalam menit
             '/', // path
             config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
             config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
@@ -114,6 +115,8 @@ class AuthController extends Controller
             false, // raw
             'Lax' // SameSite ('Strict', 'Lax' atau 'None')
         );
+
+        return $response;
     }
 
     /**
@@ -136,29 +139,35 @@ class AuthController extends Controller
     {
         try {
             $user = auth()->user();
-            $token = JWTAuth::getToken() ? JWTAuth::getToken()->get() : $request->cookie('access_token');
+            $cookieAccessToken = $request->cookie('access_token');
+            $token = JWTAuth::getToken() ? JWTAuth::getToken()->get() : $cookieAccessToken;
 
             Utils::getInstance()->removeTokenFromRedis($user->uuid, $token);
 
             JWTAuth::invalidate($token);
 
-            return $this->successResponse(
+            $response = $this->successResponse(
                 [
                     'success' => true
                 ],
                 'Sesi Anda telah berakhir.'
-            )
-            ->cookie(
-                'access_token', // nama cookie
-                '', // nilai kosong untuk menghapus cookie
-                -1, // durasi negatif untuk menghapus cookie
-                '/', // path
-                config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-                config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
-                true, // httpOnly (tidak bisa dibaca JS)
-                false, // raw
-                'Lax' // SameSite ('Strict', 'Lax' atau 'None')
             );
+
+            if ($cookieAccessToken) {
+                $response->cookie(
+                    'access_token', // nama cookie
+                    '', // nilai kosong untuk menghapus cookie
+                    -1, // durasi negatif untuk menghapus cookie
+                    '/', // path
+                    config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                    config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+                    true, // httpOnly (tidak bisa dibaca JS)
+                    false, // raw
+                    'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+                );
+            }
+
+            return $response;
         } catch (Exception $ex) {
             return $this->errorResponse($ex->getMessage(), 500);
         }
@@ -438,9 +447,11 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function refreshToken()
+    public function refreshToken(Request $request)
     {
         try {
+            $cookieAccessToken = $request->cookie('access_token');
+
             $oldToken = JWTAuth::getToken();
             $oldTokenString = $oldToken->get();
             $user = JWTAuth::parseToken()->authenticate();
@@ -450,26 +461,32 @@ class AuthController extends Controller
             Utils::getInstance()->removeTokenFromRedis($user->uuid, $oldTokenString);
             Utils::getInstance()->storeTokenInRedis($user->uuid, $newToken);
             
-            return response()->json([
+            $response = response()->json([
                 'success' => true,
                 'access_token' => $newToken,
                 'token_type' => 'bearer',
                 'expires_in' => $expiredIn,
                 'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
-            ])
-            ->cookie(
-                'access_token', // nama cookie
-                $newToken, // nilai token
-                config('jwt.ttl'), // durasi dalam menit
-                '/', // path
-                config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-                config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
-                true, // httpOnly (tidak bisa dibaca JS)
-                false, // raw
-                'Lax' // SameSite ('Strict', 'Lax' atau 'None')
-            );
+            ]);
+
+            if ($cookieAccessToken) {
+                $response->cookie(
+                    'access_token', // nama cookie
+                    $newToken, // nilai token
+                    config('jwt.refresh_ttl'), // durasi dalam menit
+                    '/', // path
+                    config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                    config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+                    true, // httpOnly (tidak bisa dibaca JS)
+                    false, // raw
+                    'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+                );
+            }
+
+            return $response;
         } catch (Exception $ex) {
-            return $this->errorResponse('Sesi Anda telah berakhir. Silakan login kembali.', 401);
+            // return $this->errorResponse('Sesi Anda telah berakhir. Silakan login kembali.', 401);
+            return $this->errorResponse($ex->getMessage(), 401);
         }
     }
 
@@ -505,6 +522,7 @@ class AuthController extends Controller
     public function startImpersonate(Request $request, $uuid)
     {
         $admin = auth()->user();
+        $cookieAccessToken = $request->cookie('access_token');
         $target = User::where('uuid', $uuid)->first();
 
         if (!$target) {
@@ -534,7 +552,7 @@ class AuthController extends Controller
         $expiresAt = now()->addSeconds($ttl)->timestamp;
         Redis::zadd("user_tokens:{$target->uuid}", $expiresAt, $token);
 
-        return $this->successResponse(
+        $response = $this->successResponse(
             [
                 'success' => true,
                 'access_token' => $token,
@@ -544,29 +562,23 @@ class AuthController extends Controller
                 'impersonated_user' => $target,
             ],
             'Berhasil impersonasi sebagai ' . $target->full_name . '.'
-        )
-        ->cookie(
-            'access_token', // nama cookie
-            $token, // nilai token
-            config('jwt.ttl'), // durasi dalam menit
-            '/', // path
-            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
-            true, // httpOnly (tidak bisa dibaca JS)
-            false, // raw
-            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
-        )
-        ->cookie(
-            'impersonated_by', // nama cookie
-            $admin->uuid, // nilai token
-            config('jwt.ttl'), // durasi dalam menit
-            '/', // path
-            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
-            true, // httpOnly (tidak bisa dibaca JS)
-            false, // raw
-            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
         );
+
+        if ($cookieAccessToken) {
+            $response->cookie(
+                'access_token', // nama cookie
+                $token, // nilai token
+                config('jwt.refresh_ttl'), // durasi dalam menit
+                '/', // path
+                config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+                true, // httpOnly (tidak bisa dibaca JS)
+                false, // raw
+                'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+            );
+        }
+
+        return $response;
     }
 
     /**
@@ -604,7 +616,7 @@ class AuthController extends Controller
         Utils::getInstance()->storeTokenInRedis($admin->uuid, $adminToken);
         $expiresIn = JWTAuth::factory()->getTTL() * 60;
 
-        return $this->successResponse(
+        $response = $this->successResponse(
             [
                 'success' => true,
                 'access_token' => $adminToken,
@@ -615,30 +627,24 @@ class AuthController extends Controller
                 'original_user' => $admin,
             ],
             'Berhasil mengakhiri impersonasi sebagai ' . $current->full_name . '.'
-        )
-        ->cookie(
-            'access_token', // nama cookie
-            $adminToken, // nilai token
-            config('jwt.ttl'), // durasi dalam menit
-            '/', // path
-            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
-            true, // httpOnly (tidak bisa dibaca JS)
-            false, // raw
-            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
-
-        )
-        ->cookie(
-            'impersonated_by', // nama cookie
-            '', // nilai kosong untuk menghapus cookie
-            -1, // durasi negatif untuk menghapus cookie
-            '/', // path
-            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
-            true, // httpOnly (tidak bisa dibaca JS)
-            false, // raw
-            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
         );
+
+        $cookieAccessToken = $request->cookie('access_token');
+        if ($cookieAccessToken) {
+            $response->cookie(
+                'access_token', // nama cookie
+                $adminToken, // nilai token
+                config('jwt.refresh_ttl'), // durasi dalam menit
+                '/', // path
+                config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+                true, // httpOnly (tidak bisa dibaca JS)
+                false, // raw
+                'Lax' // SameSite ('Strict', 'Lax' atau 'None')        
+            );
+        }
+
+        return $response;
     }
 
     /**

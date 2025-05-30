@@ -4,13 +4,19 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Carbon;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
+use App\Utilities\Utils;
 
 class JwtCustom
 {
     public function handle(Request $request, Closure $next)
     {
         $token = null;
+        $isCookie = false;
 
         // Cek Authorization header (Bearer)
         if ($request->bearerToken()) {
@@ -20,25 +26,61 @@ class JwtCustom
         // Kalau tidak ada, cek cookie
         if (!$token && $request->hasCookie('access_token')) {
             $token = $request->cookie('access_token');
+            $isCookie = true;
         }
 
         if (!$token) {
-            throw new UnauthorizedHttpException('jwt-auth', 'Token not provided.');
+            throw new UnauthorizedHttpException('jwt-auth', 'Token tidak ditemukan.');
         }
 
         try {
             JWTAuth::setToken($token);
+            JWTAuth::checkOrFail();
+
             $user = JWTAuth::authenticate();
 
             if (!$user) {
-                throw new UnauthorizedHttpException('jwt-auth', 'User not found.');
+                throw new UnauthorizedHttpException('jwt-auth', 'Data pengguna tidak ditemukan.');
             }
 
             auth()->setUser($user);
-        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-            throw new UnauthorizedHttpException('jwt-auth', 'Token expired.');
+        } catch (TokenExpiredException $e) {
+            try {
+                if (!$isCookie) {
+                    throw new JWTException("Token telah kadaluwarsa", 1);
+                }
+
+                $newToken = JWTAuth::refresh($token);
+
+                JWTAuth::setToken($newToken);
+                $user = JWTAuth::authenticate();
+
+                auth()->setUser($user);
+
+                Utils::getInstance()->removeTokenFromRedis($user->uuid, $token);
+                Utils::getInstance()->storeTokenInRedis($user->uuid, $newToken);
+
+                $response = $next($request);
+
+                return $response->withCookie(
+                    cookie(
+                        'access_token',
+                        $newToken,
+                        config('jwt.refresh_ttl'),
+                        '/',
+                        config('cookie.domain'),
+                        config('cookie.secure'),
+                        true,
+                        false,
+                        'Lax'
+                    )
+                );
+            } catch (JWTException $refreshException) {
+                // throw new UnauthorizedHttpException('jwt-auth', $refreshException->getMessage());
+                throw new UnauthorizedHttpException('jwt-auth', 'Token telah kedaluwarsa dan tidak dapat diperbarui.');
+            }
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-            throw new UnauthorizedHttpException('jwt-auth', 'Invalid token.');
+            throw new UnauthorizedHttpException('jwt-auth', 'Token tidak valid.');
         }
 
         return $next($request);
