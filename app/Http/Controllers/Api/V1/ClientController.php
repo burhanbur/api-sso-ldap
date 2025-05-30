@@ -26,8 +26,6 @@ use App\Utilities\Utils;
 use App\Traits\ApiResponse;
 
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 use Exception;
 

@@ -8,9 +8,9 @@ use OpenApi\Annotations as OA;
  * @OA\Info(
  *     version="1.0.0",
  *     title="UPER IDP API Documentation",
- *     description="API documentation for UPER IDP SSO System",
+ *     description="API documentation for UPER IDP SSO System (CENTRAL)",
  *     @OA\Contact(
- *         email="admin@universitaspertamina.ac.id"
+ *         email="burhan.mafazi@universitaspertamina.ac.id"
  *     )
  * )
  * 
@@ -21,7 +21,7 @@ use OpenApi\Annotations as OA;
  * 
  * @OA\SecurityScheme(
  *     type="http",
- *     description="Login with email and password to get the authentication token",
+ *     description="Login with username and password to get the authentication token",
  *     name="Token based Based",
  *     in="header",
  *     scheme="bearer",

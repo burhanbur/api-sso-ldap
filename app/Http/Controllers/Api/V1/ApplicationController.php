@@ -394,6 +394,30 @@ class ApplicationController extends Controller
         }
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/v1/applications/{uuid}/status",
+     *     summary="Update application status",
+     *     tags={"Applications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="Application UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Application status updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Application status updated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/ApplicationResource")
+     *         )
+     *     )
+     * )
+     * */
     public function updateStatus(Request $request, $uuid)
     {
         try {
@@ -419,6 +443,30 @@ class ApplicationController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/applications/{uuid}/users",
+     *     summary="Get users assigned to an application",
+     *     tags={"Applications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="Application UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Users retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Users retrieved successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserRoleResource"))
+     *         )
+     *     )
+     * )
+     */
     public function showUserApplication(Request $request, $uuid)
     {
         try {
@@ -449,6 +497,23 @@ class ApplicationController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/auth/me/applications",
+     *     summary="Get my applications",
+     *     tags={"Applications"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="My applications retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="My applications retrieved successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/ApplicationResource"))
+     *         )
+     *     )
+     * )
+     */
     public function myApplication(Request $request) 
     {
         $user = auth()->user();

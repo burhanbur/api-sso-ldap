@@ -9,7 +9,6 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.0",
         "darkaonline/l5-swagger": "^9.0",
-        "firebase/php-jwt": "^6.11",
         "kra8/laravel-snowflake": "^2.3",
         "lab404/laravel-impersonate": "^1.7",
         "laravel/framework": "^11.31",

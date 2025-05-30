@@ -453,6 +453,44 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/v1/users/{uuid}/status",
+     *     summary="Update user status",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="User UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="status",
+     *                     type="string",
+     *                     enum={"Aktif", "Tidak Aktif"},
+     *                     example="Aktif"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User status updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User status updated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
+     *         )
+     *     )
+     * )
+     */
     public function updateStatus(Request $request, $uuid)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -501,6 +539,42 @@ class UserController extends Controller
         return $response;
     }
     
+    /** 
+     * @OA\Post(
+     *     path="/api/v1/users/generate-username",
+     *     summary="Generate username",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"name"},
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="string",
+     *                     example="John Doe"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="type",
+     *                     type="string",
+     *                     example="staff"
+     *                 ),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Username generated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Username generated successfully"),
+     *             @OA\Property(property="data", type="string", example="johndoe")
+     *         )
+     *     )
+     * )
+     */
     public function generateUsername(Request $request)
     {
         $name = $request->name;
@@ -514,6 +588,33 @@ class UserController extends Controller
         );
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/users/me/profiles",
+     *     summary="Update my profile",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"full_name"},
+     *             @OA\Property(property="full_name", type="string", example="John Doe"),
+     *             @OA\Property(property="nickname", type="string", example="John"),
+     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+     *             @OA\Property(property="alt_email", type="string", format="email", example="john.alt@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="My profile updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="My profile updated successfully"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
+     *         )
+     *     )
+     * )
+     */
     public function updateMyProfile(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -569,6 +670,37 @@ class UserController extends Controller
         return $response;
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/users/import",
+     *     summary="Import users from Excel file",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"file"},
+     *                 @OA\Property(
+     *                     property="file",
+     *                     type="file",
+     *                     format="binary"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Users imported successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Users imported successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserResource"))
+     *         )
+     *     )
+     * )
+     */
     public function import(Request $request) 
     {
         $validator = Validator::make($request->all(), [
@@ -643,6 +775,23 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/users/ldap",
+     *     summary="Get list of users from LDAP",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User data retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User data retrieved successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserResource"))
+     *         )
+     *     )
+     * )
+     */
     public function userLdap()
     {
         // if (!$ldapConnection = Ldap::connectToLdap()) {

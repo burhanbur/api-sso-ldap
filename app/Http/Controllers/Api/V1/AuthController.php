@@ -175,7 +175,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/forgot-password",
+     *     path="/api/v1/auth/password/forgot",
      *     summary="Send password reset link",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
@@ -246,11 +246,30 @@ class AuthController extends Controller
     }
 
     /**
-     * Resets the user's password based on the given token
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
+     * @OA\Post(
+     *     path="/api/v1/auth/password/reset",
+     *     summary="Reset user password",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"token", "email", "password", "password_confirmation"},
+     *             @OA\Property(property="token", type="string", example="token"),
+     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="password_confirmation", type="string", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password reset successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Password reset successfully")
+     *         )
+     *     )
+     * )
+     * */
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -316,11 +335,29 @@ class AuthController extends Controller
     }
 
     /**
-     * Change the current user's password
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+     * @OA\Post(
+     *     path="/api/v1/auth/me/password/change",
+     *     summary="Change user password",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"current_password", "new_password", "new_password_confirmation"},
+     *             @OA\Property(property="current_password", type="string", example="password123"),
+     *             @OA\Property(property="new_password", type="string", example="password123"),
+     *             @OA\Property(property="new_password_confirmation", type="string", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password changed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Password changed successfully")
+     *         )
+     *     )
+     * )
+     * */
     public function changeMyPassword(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -381,11 +418,29 @@ class AuthController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+     * @OA\Post(
+     *     path="/api/v1/auth/password/change",
+     *     summary="Change user password",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"username", "password", "password_confirmation"},
+     *             @OA\Property(property="username", type="string", example="username"),
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="password_confirmation", type="string", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password changed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Password changed successfully")
+     *         )
+     *     )
+     * )
+     * */
     public function changeUserPassword(Request $request)
     {
         $response = $this->errorResponse($this->errMessage);
@@ -443,10 +498,23 @@ class AuthController extends Controller
     }
 
     /**
-     * Refresh JWT token.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+     * @OA\Post(
+     *     path="/api/v1/auth/refresh",
+     *     summary="Refresh access token",
+     *     tags={"Authentication"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Access token refreshed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="access_token", type="string", example="token"),
+     *             @OA\Property(property="token_type", type="string", example="bearer"),
+     *             @OA\Property(property="expires_in", type="integer", example=3600),
+     *             @OA\Property(property="formatted_expires_in", type="string", example="2022-01-01 00:00:00")
+     *         )
+     *     )
+     * )
+     * */
     public function refreshToken(Request $request)
     {
         try {
@@ -491,9 +559,21 @@ class AuthController extends Controller
     }
 
     /**
-     * Retrieve the authenticated user's data along with their roles, applications, and entity types.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Get(
+     *     path="/api/v1/auth/me",
+     *     summary="Get user data",
+     *     tags={"Authentication"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User data retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object", ref="#/components/schemas/UserResource"),
+     *             @OA\Property(property="message", type="string", example="User data retrieved successfully")
+     *         )
+     *     )
+     * )
      */
     public function me(Request $request)
     {
@@ -513,11 +593,21 @@ class AuthController extends Controller
     }
 
     /**
-     * Start impersonating a user.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $uuid
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Post(
+     *     path="/api/v1/auth/impersonate/start/{uuid}",
+     *     summary="Start impersonation",
+     *     tags={"Authentication"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Impersonation started successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object", ref="#/components/schemas/UserResource"),
+     *             @OA\Property(property="message", type="string", example="Impersonation started successfully")
+     *         )
+     *     )
+     * )
      */
     public function startImpersonate(Request $request, $uuid)
     {
@@ -582,10 +672,20 @@ class AuthController extends Controller
     }
 
     /**
-     * Leave impersonation.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Post(
+     *     path="/api/v1/auth/impersonate/leave",
+     *     summary="Leave impersonation",
+     *     tags={"Authentication"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Impersonation left successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Impersonation left successfully")
+     *         )
+     *     )
+     * )
      */
     public function leaveImpersonate(Request $request)
     {
@@ -648,14 +748,20 @@ class AuthController extends Controller
     }
 
     /**
-     * Log out the user from all devices except the current one.
-     *
-     * This method invalidates all tokens associated with the user except the current session token.
-     * It retrieves all valid tokens associated with the user and invalidates each one by one.
-     * Expired tokens are cleaned before the process.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @OA\Post(
+     *     path="/api/v1/auth/devices/logout",
+     *     summary="Logout user from all devices",
+     *     tags={"Authentication"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logout user from all devices successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Berhasil keluar dari semua perangkat.")
+     *         )
+     *     )
+     * )
      */
     public function logoutUserAllDevices(Request $request)
     {
@@ -701,6 +807,40 @@ class AuthController extends Controller
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
+     */
+    
+    /**
+     * @OA\Get(
+     *     path="/api/v1/auth/devices",
+     *     summary="Get user active devices",
+     *     tags={"Authentication"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Get user active devices successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Berhasil mendapatkan perangkat aktif pengguna."),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="total", type="integer", example=2),
+     *                 @OA\Property(
+     *                     property="sessions",
+     *                     type="array",
+     *                     @OA\Items( 
+     *                         @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLC..."),
+     *                         @OA\Property(property="created_at", type="string", example="2023-06-01 10:00:00"),
+     *                         @OA\Property(property="expires_at", type="string", example="2023-06-01 11:00:00"),
+     *                         @OA\Property(property="is_active", type="boolean", example=true),
+     *                         @OA\Property(property="is_impersonating", type="boolean", example=false),
+     *                         @OA\Property(property="impersonated_user", type="string", example="John Doe"),
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function getUserActiveDevices(Request $request)
     {
@@ -768,6 +908,39 @@ class AuthController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/auth/impersonations",
+     *     summary="Get all active impersonation sessions",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Active impersonation sessions retrieved",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Berhasil mendapatkan perangkat aktif pengguna."),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="total", type="integer", example=2),
+     *                 @OA\Property(
+     *                     property="sessions",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(property="name", type="string", example="John Doe"),
+     *                         @OA\Property(property="impersonated_by", type="string", example="John Doe"),
+     *                         @OA\Property(property="created_at", type="string", example="2023-09-01 10:00:00"),
+     *                         @OA\Property(property="expires_at", type="string", example="2023-09-01 11:00:00"),
+     *                         @OA\Property(property="is_current", type="boolean", example=false),
+     *                         @OA\Property(property="is_impersonation", type="boolean", example=true),
+     *                     ),
+     *                 ),
+     *             ),
+     *         ),         
+     *     ),
+     * )
+     */
     public function getActiveImpersonations(Request $request)
     {
         try {

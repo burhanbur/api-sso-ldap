@@ -152,8 +152,8 @@ class NotificationController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *     path="/api/v1/notifications/{uuid}/read",
+     * @OA\Put(
+     *     path="/api/v1/notifications/{uuid}",
      *     summary="Mark a notification as read",
      *     tags={"Notifications"},
      *     security={{ "bearerAuth": {} }},
@@ -238,8 +238,8 @@ class NotificationController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *     path="/api/v1/notifications/mark-all-read",
+     * @OA\Put(
+     *     path="/api/v1/notifications/read-all",
      *     summary="Mark all notifications as read",
      *     tags={"Notifications"},
      *     security={{ "bearerAuth": {} }},
