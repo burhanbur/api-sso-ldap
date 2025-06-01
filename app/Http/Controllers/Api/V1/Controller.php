@@ -53,6 +53,10 @@ use OpenApi\Annotations as OA;
  *     name="Notifications",
  *     description="API Endpoints for Notification Management"
  * )
+ * @OA\Tag(
+ *     name="Client Apps",
+ *     description="API Endpoints Only for Client Apps Management"
+ * )
  */
 class Controller extends \App\Http\Controllers\Controller
 {

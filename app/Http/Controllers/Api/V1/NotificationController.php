@@ -51,6 +51,10 @@ class NotificationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Notifications retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/notifications"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=5),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/NotificationResource"))
      *         )
      *     )
@@ -97,6 +101,10 @@ class NotificationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Notification created successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/notifications"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/NotificationResource")
      *         )
      *     )
@@ -141,7 +149,7 @@ class NotificationController extends Controller
             DB::commit();
 
             return $this->successResponse(
-                $data,
+                NotificationResource::collection($data),
                 'Berhasil menyimpan notifikasi.'
             );
         } catch (Exception $ex){
@@ -169,6 +177,10 @@ class NotificationController extends Controller
      *         description="Notification marked as read successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/notifications/53e6b0f8-4f7c-4a3a-b0f8-4f7c4a3ab0f8"),
+     *             @OA\Property(property="method", type="string", example="PUT"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="message", type="string", example="Notification marked as read successfully")
      *         )
      *     )
@@ -215,6 +227,10 @@ class NotificationController extends Controller
      *         description="Notification deleted successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/notifications/53e6b0f8-4f7c-4a3a-b0f8-4f7c4a3ab0f8"),
+     *             @OA\Property(property="method", type="string", example="DELETE"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=0),
      *             @OA\Property(property="message", type="string", example="Notification deleted successfully")
      *         )
      *     )
@@ -248,6 +264,10 @@ class NotificationController extends Controller
      *         description="All notifications marked as read successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/notifications/read-all"),
+     *             @OA\Property(property="method", type="string", example="PUT"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=0),
      *             @OA\Property(property="message", type="string", example="All notifications marked as read successfully")
      *         )
      *     )

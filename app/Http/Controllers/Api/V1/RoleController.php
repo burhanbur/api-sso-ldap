@@ -58,6 +58,10 @@ class RoleController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Roles retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/roles"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=5),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/RoleResource"))
      *         )
      *     )
@@ -137,6 +141,10 @@ class RoleController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Role created successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/roles"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/RoleResource")
      *         )
      *     )
@@ -200,6 +208,10 @@ class RoleController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Role details retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/roles/53e8b9b8-0c4b-4b0d-8a0d-4b0d8a0d4b0d"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/RoleResource")
      *         )
      *     )
@@ -254,6 +266,10 @@ class RoleController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Role updated successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/roles/53e8b9b8-0c4b-4b0d-8a0d-4b0d8a0d4b0d"),
+     *             @OA\Property(property="method", type="string", example="PUT"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/RoleResource")
      *         )
      *     )
@@ -320,6 +336,10 @@ class RoleController extends Controller
      *         description="Role deleted successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/roles/53e8b9b8-0c4b-4b0d-8a0d-4b0d8a0d4b0d"),
+     *             @OA\Property(property="method", type="string", example="DELETE"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=0),
      *             @OA\Property(property="message", type="string", example="Role deleted successfully")
      *         )
      *     )

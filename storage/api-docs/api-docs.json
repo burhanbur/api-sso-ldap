@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost/api-sso-ldap/public",
+            "url": "http://127.0.0.1:8001",
             "description": "API Server"
         }
     ],
@@ -57,6 +57,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Applications retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/applications"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 5
                                         },
                                         "data": {
                                             "type": "array",
@@ -151,6 +167,22 @@
                                             "type": "string",
                                             "example": "Application created successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/applications"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/ApplicationResource"
                                         }
@@ -201,6 +233,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Application details retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/ApplicationResource"
@@ -295,6 +343,22 @@
                                             "type": "string",
                                             "example": "Application updated successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "PUT"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/ApplicationResource"
                                         }
@@ -339,6 +403,22 @@
                                         "success": {
                                             "type": "boolean",
                                             "example": true
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "DELETE"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 0
                                         },
                                         "message": {
                                             "type": "string",
@@ -392,6 +472,22 @@
                                             "type": "string",
                                             "example": "Application status updated successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e/status"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "PUT"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/ApplicationResource"
                                         }
@@ -443,6 +539,22 @@
                                             "type": "string",
                                             "example": "Users retrieved successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e/users"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
                                         "data": {
                                             "type": "array",
                                             "items": {
@@ -484,6 +596,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "My applications retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/me/applications"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 5
                                         },
                                         "data": {
                                             "type": "array",
@@ -548,26 +676,21 @@
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "message": {
+                                        "access_token": {
                                             "type": "string",
-                                            "example": "Login successful"
+                                            "example": "eyJ0eXAiOiJKV1QiLC..."
                                         },
-                                        "data": {
-                                            "properties": {
-                                                "token": {
-                                                    "type": "string",
-                                                    "example": "eyJ0eXAiOiJKV1QiLC..."
-                                                },
-                                                "token_type": {
-                                                    "type": "string",
-                                                    "example": "bearer"
-                                                },
-                                                "expires_in": {
-                                                    "type": "integer",
-                                                    "example": 3600
-                                                }
-                                            },
-                                            "type": "object"
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "bearer"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer",
+                                            "example": 3600
+                                        },
+                                        "formatted_expires_in": {
+                                            "type": "integer",
+                                            "example": "2023-06-01 11:00:00"
                                         }
                                     },
                                     "type": "object"
@@ -588,6 +711,18 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Invalid credentials"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/login"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
                                         }
                                     },
                                     "type": "object"
@@ -619,6 +754,27 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Logged out successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/logout"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -675,6 +831,18 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Password reset link has been sent to your email"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/password/forgot"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
                                         }
                                     },
                                     "type": "object"
@@ -741,6 +909,18 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Password reset successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/password/reset"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
                                         }
                                     },
                                     "type": "object"
@@ -801,6 +981,21 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Password changed successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/password/change"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
                                         }
                                     },
                                     "type": "object"
@@ -861,6 +1056,21 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Password changed successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/password/change"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
                                         }
                                     },
                                     "type": "object"
@@ -932,12 +1142,24 @@
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "data": {
-                                            "$ref": "#/components/schemas/UserResource"
-                                        },
                                         "message": {
                                             "type": "string",
                                             "example": "User data retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/me"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
                                         }
                                     },
                                     "type": "object"
@@ -971,12 +1193,49 @@
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "data": {
-                                            "$ref": "#/components/schemas/UserResource"
-                                        },
                                         "message": {
                                             "type": "string",
                                             "example": "Impersonation started successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/impersonate/start/550e8400-e29b-41d4-a716-446655440000"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "access_token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLC..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "bearer"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 3600
+                                                },
+                                                "formatted_expires_in": {
+                                                    "type": "integer",
+                                                    "example": "2023-06-01 11:00:00"
+                                                },
+                                                "impersonated_user": {
+                                                    "$ref": "#/components/schemas/UserResource"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -1010,9 +1269,52 @@
                                             "type": "boolean",
                                             "example": true
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/impersonate/leave"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
                                         "message": {
                                             "type": "string",
                                             "example": "Impersonation left successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "access_token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLC..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "bearer"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 3600
+                                                },
+                                                "formatted_expires_in": {
+                                                    "type": "string",
+                                                    "example": "2023-06-01 11:00:00"
+                                                },
+                                                "impersonated_user": {
+                                                    "$ref": "#/components/schemas/UserResource"
+                                                },
+                                                "original_user": {
+                                                    "$ref": "#/components/schemas/UserResource"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -1049,6 +1351,18 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Berhasil keluar dari semua perangkat."
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/devices/logout"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
                                         }
                                     },
                                     "type": "object"
@@ -1064,13 +1378,13 @@
                 ]
             }
         },
-        "/api/v1/auth/devices": {
+        "/api/v1/auth/devices/active": {
             "get": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Get user active devices",
-                "operationId": "89b7f045484ee142e18107bfebeebc18",
+                "operationId": "5e753765c3ee92edc1835ffbf7a07a2d",
                 "responses": {
                     "200": {
                         "description": "Get user active devices successfully",
@@ -1084,11 +1398,23 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Berhasil mendapatkan perangkat aktif pengguna."
+                                            "example": "Active sessions retrieved successfully."
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/devices/active"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
                                         },
                                         "data": {
                                             "properties": {
-                                                "total": {
+                                                "active_sessions": {
                                                     "type": "integer",
                                                     "example": 2
                                                 },
@@ -1141,13 +1467,13 @@
                 ]
             }
         },
-        "/api/v1/auth/impersonations": {
+        "/api/v1/auth/devices/active/impersonate": {
             "get": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Get all active impersonation sessions",
-                "operationId": "e9a355fd431cf2e5f6b1b88f571397ce",
+                "operationId": "20ca8d7259f8d05d982b88dc59e65660",
                 "responses": {
                     "200": {
                         "description": "Active impersonation sessions retrieved",
@@ -1163,39 +1489,53 @@
                                             "type": "string",
                                             "example": "Berhasil mendapatkan perangkat aktif pengguna."
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/auth/devices/active/impersonate"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
                                         "data": {
                                             "properties": {
-                                                "total": {
+                                                "active_impersonations": {
                                                     "type": "integer",
                                                     "example": 2
                                                 },
-                                                "sessions": {
+                                                "impersonations": {
                                                     "type": "array",
                                                     "items": {
                                                         "properties": {
-                                                            "name": {
-                                                                "type": "string",
-                                                                "example": "John Doe"
+                                                            "user": {
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid",
+                                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "John Doe"
+                                                                    },
+                                                                    "email": {
+                                                                        "type": "string",
+                                                                        "example": "2Xq9b@example.com"
+                                                                    }
+                                                                },
+                                                                "type": "object"
                                                             },
-                                                            "impersonated_by": {
-                                                                "type": "string",
-                                                                "example": "John Doe"
-                                                            },
-                                                            "created_at": {
+                                                            "started_at": {
                                                                 "type": "string",
                                                                 "example": "2023-09-01 10:00:00"
                                                             },
                                                             "expires_at": {
                                                                 "type": "string",
                                                                 "example": "2023-09-01 11:00:00"
-                                                            },
-                                                            "is_current": {
-                                                                "type": "boolean",
-                                                                "example": false
-                                                            },
-                                                            "is_impersonation": {
-                                                                "type": "boolean",
-                                                                "example": true
                                                             }
                                                         },
                                                         "type": "object"
@@ -1203,6 +1543,463 @@
                                                 }
                                             },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/client/callback": {
+            "get": {
+                "tags": [
+                    "Client Apps"
+                ],
+                "summary": "Handle redirect to client apps callback redirect URL",
+                "operationId": "d4562235e1cc0cdc50d2a8ba0c07a9a1",
+                "parameters": [
+                    {
+                        "name": "app_id",
+                        "in": "query",
+                        "description": "ID aplikasi (UUID)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "redirect_url",
+                        "in": "query",
+                        "description": "Client application callback URL",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uri"
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirects to the client application with token in query string",
+                        "headers": {
+                            "Location": {
+                                "description": "Redirect location",
+                                "schema": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://client.app/callback?access_token=xxx"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/client/session": {
+            "post": {
+                "tags": [
+                    "Client Apps"
+                ],
+                "summary": "Check session for client apps",
+                "operationId": "df8e491939d5103b53373e0677ab0aa3",
+                "parameters": [
+                    {
+                        "name": "x-app-id",
+                        "in": "header",
+                        "description": "ID aplikasi",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token validation successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/client/check-session"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "is_impersonation": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "impersonated_by": {
+                                            "type": "string",
+                                            "example": "53e4d3e1-0a4b-4e45-9d0c-8f1c4b2f1c2e"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/UserResource"
+                                                },
+                                                "access_token": {
+                                                    "type": "string",
+                                                    "example": "Bearer eyJhbGciOiJIUz..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "bearer"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 3600
+                                                },
+                                                "formatted_expires_in": {
+                                                    "type": "string",
+                                                    "example": "2023-06-01 10:00:00"
+                                                },
+                                                "sso_session_valid": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "application_roles": {
+                                                    "properties": {
+                                                        "role": {
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "example": "Admin"
+                                                                },
+                                                                "display_name": {
+                                                                    "type": "string",
+                                                                    "example": "Administrator"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "entity_type": {
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "example": "Application"
+                                                                },
+                                                                "code": {
+                                                                    "type": "string",
+                                                                    "example": "app"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "entity_id": {
+                                                            "type": "string",
+                                                            "example": "testing-uuid"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/client/session/clear": {
+            "post": {
+                "tags": [
+                    "Client Apps"
+                ],
+                "summary": "Clear session",
+                "operationId": "20d07a86c082d50aab6a5c5e87bc2e5a",
+                "responses": {
+                    "200": {
+                        "description": "Sesi Anda telah berakhir.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sesi Anda telah berakhir."
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/client/session/clear"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/client/users/{code}/code": {
+            "get": {
+                "tags": [
+                    "Client Apps"
+                ],
+                "summary": "Get user by code",
+                "operationId": "06a3394203d4dbc5821090d32699eb07",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "User code",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data pengguna berhasil didapatkan."
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/client/users/{code}/code"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/client/users/{uuid}/uuid": {
+            "get": {
+                "tags": [
+                    "Client Apps"
+                ],
+                "summary": "Get user by uuid",
+                "operationId": "bd2d08d2e12bc043ab95cb5a3a6ef410",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "User uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data pengguna berhasil didapatkan."
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/client/users/{uuid}/uuid"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/client/users": {
+            "post": {
+                "tags": [
+                    "Client Apps"
+                ],
+                "summary": "Insert or update user",
+                "operationId": "be6e4afb059fd43379f6bf1b6f2fcc07",
+                "parameters": [
+                    {
+                        "name": "x-app-id",
+                        "in": "header",
+                        "description": "ID aplikasi",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "NIP/NIM"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "username": {
+                                        "type": "string",
+                                        "example": "johndoe"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "staff"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User inserted or updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data pengguna berhasil disimpan."
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/client/users"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
                                         }
                                     },
                                     "type": "object"
@@ -1251,6 +2048,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Notifications retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/notifications"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 5
                                         },
                                         "data": {
                                             "type": "array",
@@ -1329,6 +2142,22 @@
                                             "type": "string",
                                             "example": "Notification created successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/notifications"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/NotificationResource"
                                         }
@@ -1376,6 +2205,22 @@
                                             "type": "boolean",
                                             "example": true
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/notifications/53e6b0f8-4f7c-4a3a-b0f8-4f7c4a3ab0f8"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "PUT"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
                                         "message": {
                                             "type": "string",
                                             "example": "Notification marked as read successfully"
@@ -1422,6 +2267,22 @@
                                             "type": "boolean",
                                             "example": true
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/notifications/53e6b0f8-4f7c-4a3a-b0f8-4f7c4a3ab0f8"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "DELETE"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 0
+                                        },
                                         "message": {
                                             "type": "string",
                                             "example": "Notification deleted successfully"
@@ -1457,6 +2318,22 @@
                                         "success": {
                                             "type": "boolean",
                                             "example": true
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/notifications/read-all"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "PUT"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 0
                                         },
                                         "message": {
                                             "type": "string",
@@ -1518,6 +2395,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Roles retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/roles"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 5
                                         },
                                         "data": {
                                             "type": "array",
@@ -1595,6 +2488,22 @@
                                             "type": "string",
                                             "example": "Role created successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/roles"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/RoleResource"
                                         }
@@ -1645,6 +2554,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Role details retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/roles/53e8b9b8-0c4b-4b0d-8a0d-4b0d8a0d4b0d"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/RoleResource"
@@ -1727,6 +2652,22 @@
                                             "type": "string",
                                             "example": "Role updated successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/roles/53e8b9b8-0c4b-4b0d-8a0d-4b0d8a0d4b0d"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "PUT"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/RoleResource"
                                         }
@@ -1771,6 +2712,22 @@
                                         "success": {
                                             "type": "boolean",
                                             "example": true
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/roles/53e8b9b8-0c4b-4b0d-8a0d-4b0d8a0d4b0d"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "DELETE"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 0
                                         },
                                         "message": {
                                             "type": "string",
@@ -1843,6 +2800,22 @@
                                             "type": "string",
                                             "example": "Users retrieved successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
                                         "data": {
                                             "type": "array",
                                             "items": {
@@ -1853,7 +2826,7 @@
                                             "properties": {
                                                 "total": {
                                                     "type": "integer",
-                                                    "example": 100
+                                                    "example": 5
                                                 },
                                                 "per_page": {
                                                     "type": "integer",
@@ -1865,7 +2838,15 @@
                                                 },
                                                 "last_page": {
                                                     "type": "integer",
-                                                    "example": 10
+                                                    "example": 1
+                                                },
+                                                "from": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "to": {
+                                                    "type": "integer",
+                                                    "example": 5
                                                 }
                                             },
                                             "type": "object"
@@ -1956,6 +2937,18 @@
                                             "type": "string",
                                             "example": "User created successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/UserResource"
                                         }
@@ -2006,6 +2999,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "User details retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/5e9b6c5e-4bde-11d1-9f0e-1234567890ab"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/UserResource"
@@ -2099,6 +3108,18 @@
                                             "type": "string",
                                             "example": "User updated successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/51f9b4c0-1f1a-4b0c-8f0e-1f1a4b0c8f0e"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "PUT"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/UserResource"
                                         }
@@ -2170,6 +3191,18 @@
                                             "type": "string",
                                             "example": "User status updated successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/5e9b6c5d-3b9d-4b9a-b9a3-5e9b6c5d3b9a/status"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "PUT"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/UserResource"
                                         }
@@ -2232,8 +3265,24 @@
                                             "type": "string",
                                             "example": "Username generated successfully"
                                         },
-                                        "data": {
+                                        "url": {
                                             "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/generate-username"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "data": {
+                                            "type": "object",
                                             "example": "johndoe"
                                         }
                                     },
@@ -2305,6 +3354,22 @@
                                             "type": "string",
                                             "example": "My profile updated successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/me/profiles"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/UserResource"
                                         }
@@ -2363,6 +3428,18 @@
                                             "type": "string",
                                             "example": "Users imported successfully"
                                         },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/import"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "POST"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
                                         "data": {
                                             "type": "array",
                                             "items": {
@@ -2404,6 +3481,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "User data retrieved successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/ldap"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "GET"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        },
+                                        "total_data": {
+                                            "type": "integer",
+                                            "example": 1
                                         },
                                         "data": {
                                             "type": "array",
@@ -3036,6 +4129,10 @@
         {
             "name": "Authentication",
             "description": "API Endpoints for User Authentication"
+        },
+        {
+            "name": "Client Apps",
+            "description": "API Endpoints Only for Client Apps Management"
         },
         {
             "name": "Users",

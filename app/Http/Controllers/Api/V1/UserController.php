@@ -70,12 +70,18 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Users retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=5),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserResource")),
      *             @OA\Property(property="pagination", type="object",
-     *                 @OA\Property(property="total", type="integer", example=100),
+     *                 @OA\Property(property="total", type="integer", example=5),
      *                 @OA\Property(property="per_page", type="integer", example=10),
      *                 @OA\Property(property="current_page", type="integer", example=1),
-     *                 @OA\Property(property="last_page", type="integer", example=10)
+     *                 @OA\Property(property="last_page", type="integer", example=1),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="to", type="integer", example=5)
      *             )
      *         )
      *     )
@@ -154,6 +160,10 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="User details retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/5e9b6c5e-4bde-11d1-9f0e-1234567890ab"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
      *         )
      *     )
@@ -207,6 +217,9 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="User created successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
      *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
      *         )
      *     )
@@ -319,6 +332,9 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="User updated successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/51f9b4c0-1f1a-4b0c-8f0e-1f1a4b0c8f0e"),
+     *             @OA\Property(property="method", type="string", example="PUT"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
      *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
      *         )
      *     )
@@ -486,6 +502,9 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="User status updated successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/5e9b6c5d-3b9d-4b9a-b9a3-5e9b6c5d3b9a/status"),
+     *             @OA\Property(property="method", type="string", example="PUT"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
      *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
      *         )
      *     )
@@ -570,7 +589,11 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Username generated successfully"),
-     *             @OA\Property(property="data", type="string", example="johndoe")
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/generate-username"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
+     *             @OA\Property(property="data", type="object", example="johndoe")
      *         )
      *     )
      * )
@@ -610,6 +633,10 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="My profile updated successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/me/profiles"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
      *         )
      *     )
@@ -696,6 +723,9 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Users imported successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/import"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserResource"))
      *         )
      *     )
@@ -787,6 +817,10 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="User data retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/ldap"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserResource"))
      *         )
      *     )

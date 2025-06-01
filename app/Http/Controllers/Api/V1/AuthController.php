@@ -55,12 +55,10 @@ class AuthController extends Controller
      *         description="Login successful",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Login successful"),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLC..."),
-     *                 @OA\Property(property="token_type", type="string", example="bearer"),
-     *                 @OA\Property(property="expires_in", type="integer", example=3600)
-     *             )
+     *             @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLC..."),
+     *             @OA\Property(property="token_type", type="string", example="bearer"),
+     *             @OA\Property(property="expires_in", type="integer", example=3600),
+     *             @OA\Property(property="formatted_expires_in", type="integer", example="2023-06-01 11:00:00")
      *         )
      *     ),
      *     @OA\Response(
@@ -68,7 +66,10 @@ class AuthController extends Controller
      *         description="Invalid credentials",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Invalid credentials")
+     *             @OA\Property(property="message", type="string", example="Invalid credentials"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/login"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00")
      *         )
      *     )
      * )
@@ -130,7 +131,13 @@ class AuthController extends Controller
      *         description="Logged out successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Logged out successfully")
+     *             @OA\Property(property="message", type="string", example="Logged out successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/logout"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=true)
+     *             )
      *         )
      *     )
      * )
@@ -190,7 +197,10 @@ class AuthController extends Controller
      *         description="Password reset link sent",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Password reset link has been sent to your email")
+     *             @OA\Property(property="message", type="string", example="Password reset link has been sent to your email"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/password/forgot"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00")
      *         )
      *     )
      * )
@@ -265,7 +275,10 @@ class AuthController extends Controller
      *         description="Password reset successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Password reset successfully")
+     *             @OA\Property(property="message", type="string", example="Password reset successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/password/reset"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00")
      *         )
      *     )
      * )
@@ -353,7 +366,11 @@ class AuthController extends Controller
      *         description="Password changed successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Password changed successfully")
+     *             @OA\Property(property="message", type="string", example="Password changed successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/password/change"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
      *         )
      *     )
      * )
@@ -436,7 +453,11 @@ class AuthController extends Controller
      *         description="Password changed successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Password changed successfully")
+     *             @OA\Property(property="message", type="string", example="Password changed successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/password/change"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
      *         )
      *     )
      * )
@@ -569,8 +590,11 @@ class AuthController extends Controller
      *         description="User data retrieved successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object", ref="#/components/schemas/UserResource"),
-     *             @OA\Property(property="message", type="string", example="User data retrieved successfully")
+     *             @OA\Property(property="message", type="string", example="User data retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/me"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
      *         )
      *     )
      * )
@@ -587,7 +611,6 @@ class AuthController extends Controller
 
         return $this->successResponse(
             new UserResource($user),
-            // $user,
             'User data retrieved successfully'
         );
     }
@@ -603,8 +626,18 @@ class AuthController extends Controller
      *         description="Impersonation started successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object", ref="#/components/schemas/UserResource"),
-     *             @OA\Property(property="message", type="string", example="Impersonation started successfully")
+     *             @OA\Property(property="message", type="string", example="Impersonation started successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/impersonate/start/550e8400-e29b-41d4-a716-446655440000"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=true),
+     *                 @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLC..."),
+     *                 @OA\Property(property="token_type", type="string", example="bearer"),
+     *                 @OA\Property(property="expires_in", type="integer", example=3600),
+     *                 @OA\Property(property="formatted_expires_in", type="integer", example="2023-06-01 11:00:00"),
+     *                 @OA\Property(property="impersonated_user", ref="#/components/schemas/UserResource")
+     *             )
      *         )
      *     )
      * )
@@ -649,7 +682,7 @@ class AuthController extends Controller
                 'token_type' => 'bearer',
                 'expires_in' => $ttl,
                 'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
-                'impersonated_user' => $target,
+                'impersonated_user' => new UserResource($target),
             ],
             'Berhasil impersonasi sebagai ' . $target->full_name . '.'
         );
@@ -682,7 +715,19 @@ class AuthController extends Controller
      *         description="Impersonation left successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Impersonation left successfully")
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/impersonate/leave"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="message", type="string", example="Impersonation left successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="success", type="boolean", example=true),
+     *                 @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLC..."),
+     *                 @OA\Property(property="token_type", type="string", example="bearer"),
+     *                 @OA\Property(property="expires_in", type="integer", example=3600),
+     *                 @OA\Property(property="formatted_expires_in", type="string", example="2023-06-01 11:00:00"),
+     *                 @OA\Property(property="impersonated_user", ref="#/components/schemas/UserResource"),
+     *                 @OA\Property(property="original_user", ref="#/components/schemas/UserResource")
+     *             )
      *         )
      *     )
      * )
@@ -723,8 +768,8 @@ class AuthController extends Controller
                 'token_type' => 'bearer',
                 'expires_in' => $expiresIn,
                 'formatted_expires_in' => Carbon::now()->addMinutes(JWTAuth::factory()->getTTL())->format('Y-m-d H:i:s'),
-                'impersonated_user' => $current,
-                'original_user' => $admin,
+                'impersonated_user' => new UserResource($current),
+                'original_user' => new UserResource($admin),
             ],
             'Berhasil mengakhiri impersonasi sebagai ' . $current->full_name . '.'
         );
@@ -758,7 +803,10 @@ class AuthController extends Controller
      *         description="Logout user from all devices successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Berhasil keluar dari semua perangkat.")
+     *             @OA\Property(property="message", type="string", example="Berhasil keluar dari semua perangkat."),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/devices/logout"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00")
      *         )
      *     )
      * )
@@ -811,7 +859,7 @@ class AuthController extends Controller
     
     /**
      * @OA\Get(
-     *     path="/api/v1/auth/devices",
+     *     path="/api/v1/auth/devices/active",
      *     summary="Get user active devices",
      *     tags={"Authentication"},
      *     security={{ "bearerAuth": {} }},
@@ -820,11 +868,14 @@ class AuthController extends Controller
      *         description="Get user active devices successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Berhasil mendapatkan perangkat aktif pengguna."),
+     *             @OA\Property(property="message", type="string", example="Active sessions retrieved successfully."),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/devices/active"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
-     *                 @OA\Property(property="total", type="integer", example=2),
+     *                 @OA\Property(property="active_sessions", type="integer", example=2),
      *                 @OA\Property(
      *                     property="sessions",
      *                     type="array",
@@ -910,7 +961,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/auth/impersonations",
+     *     path="/api/v1/auth/devices/active/impersonate",
      *     summary="Get all active impersonation sessions",
      *     tags={"Authentication"},
      *     security={{"bearerAuth": {}}},
@@ -920,20 +971,24 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Berhasil mendapatkan perangkat aktif pengguna."),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/devices/active/impersonate"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
-     *                 @OA\Property(property="total", type="integer", example=2),
+     *                 @OA\Property(property="active_impersonations", type="integer", example=2),
      *                 @OA\Property(
-     *                     property="sessions",
+     *                     property="impersonations",
      *                     type="array",
      *                     @OA\Items(
-     *                         @OA\Property(property="name", type="string", example="John Doe"),
-     *                         @OA\Property(property="impersonated_by", type="string", example="John Doe"),
-     *                         @OA\Property(property="created_at", type="string", example="2023-09-01 10:00:00"),
+     *                         @OA\Property(property="user", type="object", 
+     *                             @OA\Property(property="uuid", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                             @OA\Property(property="name", type="string", example="John Doe"),
+     *                             @OA\Property(property="email", type="string", example="2Xq9b@example.com"),
+     *                         ),
+     *                         @OA\Property(property="started_at", type="string", example="2023-09-01 10:00:00"),
      *                         @OA\Property(property="expires_at", type="string", example="2023-09-01 11:00:00"),
-     *                         @OA\Property(property="is_current", type="boolean", example=false),
-     *                         @OA\Property(property="is_impersonation", type="boolean", example=true),
      *                     ),
      *                 ),
      *             ),
@@ -959,8 +1014,8 @@ class AuthController extends Controller
                     // Periksa apakah ini adalah sesi impersonasi yang dilakukan oleh admin ini
                     if (isset($details['is_impersonation']) && 
                         $details['is_impersonation'] &&
-                        $details['impersonated_by'] === $admin->uuid) {
-                        
+                        $details['impersonated_by'] === $admin->uuid
+                    ) {
                         // Ekstrak token dari key
                         $token = str_replace("token_details:", "", $tokenKey);
                         

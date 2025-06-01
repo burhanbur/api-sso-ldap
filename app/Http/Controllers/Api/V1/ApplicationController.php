@@ -59,6 +59,10 @@ class ApplicationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Applications retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/applications"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=5),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/ApplicationResource"))
      *         )
      *     )
@@ -145,6 +149,10 @@ class ApplicationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Application created successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/applications"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/ApplicationResource")
      *         )
      *     )
@@ -220,6 +228,10 @@ class ApplicationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Application details retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/ApplicationResource")
      *         )
      *     )
@@ -275,6 +287,10 @@ class ApplicationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Application updated successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e"),
+     *             @OA\Property(property="method", type="string", example="PUT"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/ApplicationResource")
      *         )
      *     )
@@ -354,6 +370,10 @@ class ApplicationController extends Controller
      *         description="Application deleted successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e"),
+     *             @OA\Property(property="method", type="string", example="DELETE"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=0),
      *             @OA\Property(property="message", type="string", example="Application deleted successfully")
      *         )
      *     )
@@ -413,6 +433,10 @@ class ApplicationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Application status updated successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e/status"),
+     *             @OA\Property(property="method", type="string", example="PUT"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
      *             @OA\Property(property="data", ref="#/components/schemas/ApplicationResource")
      *         )
      *     )
@@ -462,6 +486,10 @@ class ApplicationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Users retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/applications/567b7c8b-4b5e-4b5e-4b5e-4b5e4b5e4b5e/users"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=5),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/UserRoleResource"))
      *         )
      *     )
@@ -509,6 +537,10 @@ class ApplicationController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="My applications retrieved successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/auth/me/applications"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=5),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/ApplicationResource"))
      *         )
      *     )

@@ -29,10 +29,47 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 use Exception;
 
+/**
+ * @OA\Tag(
+ *     name="Client Apps",
+ *     description="API Endpoints Only for Client Apps management"
+ * )
+ */
 class ClientController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/client/callback",
+     *     summary="Handle redirect to client apps callback redirect URL",
+     *     tags={"Client Apps"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="app_id",
+     *         in="query",
+     *         description="ID aplikasi (UUID)",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="redirect_url",
+     *         in="query",
+     *         description="Client application callback URL",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uri")
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirects to the client application with token in query string",
+     *         @OA\Header(
+     *             header="Location",
+     *             description="Redirect location",
+     *             @OA\Schema(type="string", format="uri", example="https://client.app/callback?access_token=xxx")
+     *         )
+     *     ),
+     * )
+     */
     public function callback(Request $request)
     {
         try {
@@ -108,6 +145,54 @@ class ClientController extends Controller
      * @request->header('x-app-id') string The application ID of the client application.
      * @request->header('Authorization') string The Bearer token for the authenticated user.
      * @return \Illuminate\Http\JsonResponse
+     */
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/client/session",
+     *     summary="Check session for client apps",
+     *     tags={"Client Apps"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="x-app-id",
+     *         in="header",
+     *         description="ID aplikasi",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Token validation successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/client/check-session"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="is_impersonation", type="boolean", example=true),
+     *             @OA\Property(property="impersonated_by", type="string", example="53e4d3e1-0a4b-4e45-9d0c-8f1c4b2f1c2e"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", ref="#/components/schemas/UserResource"),
+     *                 @OA\Property(property="access_token", type="string", example="Bearer eyJhbGciOiJIUz..."),
+     *                 @OA\Property(property="token_type", type="string", example="bearer"),
+     *                 @OA\Property(property="expires_in", type="integer", example=3600),
+     *                 @OA\Property(property="formatted_expires_in", type="string", example="2023-06-01 10:00:00"),
+     *                 @OA\Property(property="sso_session_valid", type="boolean", example=true),
+     *                 @OA\Property(property="application_roles", type="object",
+     *                     @OA\Property(property="role", type="object", 
+     *                         @OA\Property(property="name", type="string", example="Admin"),
+     *                         @OA\Property(property="display_name", type="string", example="Administrator"),
+     *                     ),
+     *                     @OA\Property(property="entity_type", type="object", 
+     *                         @OA\Property(property="name", type="string", example="Application"),
+     *                         @OA\Property(property="code", type="string", example="app"),
+     *                     ),
+     *                     @OA\Property(property="entity_id", type="string", example="testing-uuid"),
+     *                 ),
+     *             ),
+     *         ),
+     *     ),
+     * )
      */
     public function checkSession(Request $request)
     {
@@ -210,6 +295,25 @@ class ClientController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/client/session/clear",
+     *     summary="Clear session",
+     *     tags={"Client Apps"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Sesi Anda telah berakhir.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Sesi Anda telah berakhir."),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/client/session/clear"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00")
+     *         ),
+     *     ),
+     * )
+     */
     public function clearSession(Request $request)
     {
         try {
@@ -220,17 +324,6 @@ class ClientController extends Controller
 
             JWTAuth::invalidate($token);
 
-            if (isset($_SERVER['HTTP_COOKIE'])){                 
-                $cookies = explode(';', $_SERVER['HTTP_COOKIE']);                 
-                foreach ($cookies as $cookie)                 
-                {                     
-                    $parts = explode('=', $cookie);                     
-                    $name = trim($parts[0]);                     
-                    setcookie($name, '', time() - 1000);                     
-                    setcookie($name, '', time() - 1000, '/');                 
-                }             
-            }
-
             return $this->successResponse(
                 null,
                 'Sesi Anda telah berakhir.'
@@ -240,8 +333,8 @@ class ClientController extends Controller
                 '', // nilai kosong untuk menghapus cookie
                 -1, // durasi negatif untuk menghapus cookie
                 '/', // path
-                env('COOKIE_DOMAIN'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
-                env('COOKIE_SECURE'), // secure (gunakan true (HTTPS) di produksi)
+                config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
                 true, // httpOnly (tidak bisa dibaca JS)
                 false, // raw
                 'Lax' // SameSite ('Strict', 'Lax' atau 'None')
@@ -251,6 +344,34 @@ class ClientController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/client/users/{code}/code",
+     *     summary="Get user by code",
+     *     tags={"Client Apps"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="code",
+     *         in="path",
+     *         description="User code",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Data pengguna berhasil didapatkan."),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/client/users/{code}/code"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
+     *         )
+     *     )
+     * )
+     */
     public function getUserByCode(Request $request)
     {
         try {
@@ -274,8 +395,98 @@ class ClientController extends Controller
             Log::error('Error retrieving user by code: ' . $e->getMessage());
             return $this->errorResponse('Terjadi kesalahan saat mengambil pengguna.', 500);
         }
-    }    
+    }
     
+    /**
+     * @OA\Get(
+     *     path="/api/v1/client/users/{uuid}/uuid",
+     *     summary="Get user by uuid",
+     *     tags={"Client Apps"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="User uuid",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Data pengguna berhasil didapatkan."),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/client/users/{uuid}/uuid"),
+     *             @OA\Property(property="method", type="string", example="GET"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
+     *         )
+     *     )
+     * )
+     */
+    public function getUserByUuid(Request $request)
+    {
+        try {
+            $code = $request->get('code');
+
+            if (!$code) {
+                return $this->errorResponse('NIP/NIM wajib diisi.', 400);
+            }
+
+            $user = User::where('code', $code)->first();
+
+            if (!$user) {
+                return $this->errorResponse('Data pengguna tidak ditemukan.', 404);
+            }
+
+            return $this->successResponse(
+                new UserResource($user), 
+                'User retrieved successfully'
+            );
+        } catch (Exception $e) {
+            Log::error('Error retrieving user by code: ' . $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan saat mengambil pengguna.', 500);
+        }
+    }
+    
+    /**
+     * @OA\Post(
+     *     path="/api/v1/client/users",
+     *     summary="Insert or update user",
+     *     tags={"Client Apps"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="x-app-id",
+     *         in="header",
+     *         description="ID aplikasi",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="string", example="NIP/NIM"),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="username", type="string", example="johndoe"),
+     *             @OA\Property(property="type", type="string", example="staff"),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User inserted or updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Data pengguna berhasil disimpan."),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/client/users"),
+     *             @OA\Property(property="method", type="string", example="POST"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00"),
+     *             @OA\Property(property="total_data", type="integer", example=1),
+     *             @OA\Property(property="data", ref="#/components/schemas/UserResource")
+     *         )
+     *     )
+     * )
+     */
     public function insertOrUpdateUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
