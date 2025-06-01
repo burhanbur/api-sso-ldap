@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\OAuthAccessToken;
-use App\Models\OAuthClient;
+use App\Models\Application;
 use App\Models\User;
 use App\Utilities\Ldap;
 use App\Utilities\Utils;
@@ -30,7 +30,7 @@ class OAuthController extends Controller
     public function loginForm(Request $request)
     {
         $clientId = $request->query('client_id');
-        $client = OAuthClient::where('client_id', $clientId)->first();
+        $client = Application::where('client_id', $clientId)->first();
         $redirect_uri = $client->redirect_uri ?? '';
 
         return view('oauth.login');
@@ -45,17 +45,20 @@ class OAuthController extends Controller
         ]);
 
         // Verify client
-        $client = OAuthClient::where('client_id', $request->client_id)->first();
+        $client = Application::where('client_id', $request->client_id)->first();
 
         if (!$client) {
             return redirect()->route('oauth.error', ['error' => 'invalid_client']);
         }
 
-        // Get OAuth request from session
-        $oauthRequest = session('oauth_request');
-        if (!$oauthRequest) {
-            return redirect()->route('oauth.error', ['error' => 'invalid_request']);
-        }
+        // Reconstruct original request parameters to pass to /authorize
+        $oauthRequest = [
+            'client_id' => $request->client_id,
+            'redirect_uri' => $request->redirect_uri,
+            'response_type' => 'code',
+            'scope' => $request->scope,
+            'state' => $request->state,
+        ];
 
         try {
             // Authenticate using LDAP
@@ -99,7 +102,7 @@ class OAuthController extends Controller
         }
 
         // Verify client
-        $client = OAuthClient::where('client_id', $request->client_id)->first();
+        $client = Application::where('client_id', $request->client_id)->first();
         if (!$client) {
             return redirect()->route('oauth.error', ['error' => 'invalid_client']);
         }
@@ -109,25 +112,44 @@ class OAuthController extends Controller
             return redirect()->route('oauth.error', ['error' => 'invalid_redirect_uri']);
         }
 
-        // Store OAuth request in session
-        session(['oauth_request' => $request->all()]);
+        $params = $validator->validated();
 
-        // If user is not logged in, redirect to login
+        // Check access_token from cookie
+        $accessToken = $request->cookie('access_token');
+        if (!$accessToken) {
+            return redirect()->route('oauth.login', $params);
+        }
+
+        // Validate token in DB
+        $token = OAuthAccessToken::where('access_token', $accessToken)
+                    ->where('expires_at', '>', now())
+                    ->first();
+
+        if (!$token) {
+            return redirect()->route('oauth.login', $params);
+        }
+
+        // Login the user (if not already)
         if (!Auth::check()) {
-            return redirect()->route('oauth.login', ['client_id' => $request->client_id]);
+            $user = User::find($token->user_id);
+            if (!$user) {
+                return redirect()->route('oauth.error', ['error' => 'invalid_user']);
+            }
+
+            Auth::login($user);
         }
 
         // Generate authorization code
         $code = Str::random(40);
-        
+
         // Store the code in Redis with short expiration (10 minutes)
         Redis::setex("oauth:code:$code", 600, json_encode([
             'client_id' => $client->id,
-            'user_id' => Auth::id(),
+            'user_id' => $token->user_id,
             'scopes' => $request->scope ? explode(' ', $request->scope) : []
         ]));
 
-        // Redirect back to client with code
+        // Redirect back to client with code and state
         $query = http_build_query([
             'code' => $code,
             'state' => $request->state
@@ -154,7 +176,7 @@ class OAuthController extends Controller
         }
 
         // Verify client credentials
-        $client = OAuthClient::where('client_id', $request->client_id)
+        $client = Application::where('client_id', $request->client_id)
                            ->where('client_secret', $request->client_secret)
                            ->first();
 

@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::create('oauth_access_tokens', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignId('user_id')->constrained('users');
-            $table->uuid('client_id');
+            $table->string('client_id')->foreign('client_id')->references('client_id')->on('appliations')->onDelete('cascade');
             $table->string('access_token')->unique();
             $table->string('refresh_token')->unique()->nullable();
             $table->timestamp('expires_at');
             $table->json('scopes')->nullable();
             $table->timestamps();
-            $table->foreign('client_id')->references('id')->on('oauth_clients');
+
             $table->index(['access_token']);
             $table->index(['refresh_token']);
         });

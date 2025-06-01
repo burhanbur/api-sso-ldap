@@ -18,7 +18,7 @@
             </div>
             
             <div class="text-center">
-                <a href="{{ url('/') }}" class="text-blue-500 hover:text-blue-700">Back to Home</a>
+                <a href="{{ route('oauth.login', ['client_id' => request()->query('client_id') ?? '']) }}" class="text-blue-500 hover:text-blue-700">Back to Home</a>
             </div>
         </div>
     </div>

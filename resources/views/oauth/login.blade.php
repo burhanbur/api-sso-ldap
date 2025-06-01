@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OAuth Login</title>
+    <title>UPER CENTRAL</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +33,7 @@
                         Username
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                           id="username" name="username" type="text" placeholder="Enter your username">
+                           id="username" name="username" type="text" placeholder="Enter your username" required>
                 </div>
                 
                 <div class="mb-6">
@@ -41,7 +41,7 @@
                         Password
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                           id="password" name="password" type="password" placeholder="******************">
+                           id="password" name="password" type="password" placeholder="******************" required>
                 </div>
                 
                 <div class="flex items-center justify-between">

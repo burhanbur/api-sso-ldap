@@ -17,6 +17,7 @@ Route::group(['prefix' => 'oauth'], function () {
     
     Route::get('error', function(Request $request) {
         return view('oauth.error', [
+            'client_id' => $request->client_id,
             'error' => $request->error,
             'error_description' => $request->error_description
         ]);
