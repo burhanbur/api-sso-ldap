@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OAuthController;
 
 Route::group(['prefix' => 'oauth'], function () {
-    Route::group(['middleware' => ['oauth.token']], function () {
+    Route::group(['middleware' => ['oauth.auth']], function () {
         Route::get('userinfo', [OAuthController::class, 'userinfo']);
     });
 

@@ -38,27 +38,28 @@ class OAuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'username' => 'required|string',
             'password' => 'required|string',
             'client_id' => 'required|string'
         ]);
 
+        if ($validator->fails()) {
+            return redirect()->route('oauth.error', [
+                'error' => 'invalid_request', 
+                'error_description' => $validator->errors()->first()
+            ]);
+        }
+
         // Verify client
         $client = Application::where('client_id', $request->client_id)->first();
 
         if (!$client) {
-            return redirect()->route('oauth.error', ['error' => 'invalid_client']);
+            return redirect()->route('oauth.error', [
+                'error' => 'invalid_client',
+                'error_description' => 'Client not found'
+            ]);
         }
-
-        // Reconstruct original request parameters to pass to /authorize
-        $oauthRequest = [
-            'client_id' => $request->client_id,
-            'redirect_uri' => $request->redirect_uri,
-            'response_type' => 'code',
-            'scope' => $request->scope,
-            'state' => $request->state,
-        ];
 
         try {
             // Authenticate using LDAP
@@ -69,13 +70,22 @@ class OAuthController extends Controller
                 throw new Exception('Invalid credentials');
             }
 
-            $user = User::where('username', $request->username)->first();
+            $user = User::where('username', $request->username)->where('status', 'Aktif')->first();
 
             if ($user) {
                 Auth::login($user);
 
-                // Redirect back to authorization endpoint
+                $oauthRequest = [
+                    'client_id' => $request->client_id,
+                    'redirect_uri' => $request->redirect_uri,
+                    'response_type' => 'code',
+                    'scope' => $request->scope,
+                    'state' => $request->state,
+                ];
+
                 return redirect()->route('oauth.authorize', $oauthRequest);
+            } else {
+                throw new Exception('Invalid credentials');
             }
         } catch (Exception $e) {
             return back()->withErrors(['username' => 'Invalid credentials']);
@@ -104,40 +114,28 @@ class OAuthController extends Controller
         // Verify client
         $client = Application::where('client_id', $request->client_id)->first();
         if (!$client) {
-            return redirect()->route('oauth.error', ['error' => 'invalid_client']);
+            return redirect()->route('oauth.error', [
+                'error' => 'invalid_client',
+                'error_description' => 'Client not found'
+            ]);
         }
 
         // Verify redirect URI
         if ($client->redirect_uri !== $request->redirect_uri) {
-            return redirect()->route('oauth.error', ['error' => 'invalid_redirect_uri']);
+            return redirect()->route('oauth.error', [
+                'error' => 'invalid_redirect_uri',
+                'error_description' => 'Redirect URI does not match'
+            ]);
         }
 
         $params = $validator->validated();
 
-        // Check access_token from cookie
-        $accessToken = $request->cookie('access_token');
-        if (!$accessToken) {
-            return redirect()->route('oauth.login', $params);
-        }
-
-        // Validate token in DB
-        $token = OAuthAccessToken::where('access_token', $accessToken)
-                    ->where('expires_at', '>', now())
-                    ->first();
-
-        if (!$token) {
-            return redirect()->route('oauth.login', $params);
-        }
-
-        // Login the user (if not already)
+        // Check if user is already authenticated
         if (!Auth::check()) {
-            $user = User::find($token->user_id);
-            if (!$user) {
-                return redirect()->route('oauth.error', ['error' => 'invalid_user']);
-            }
-
-            Auth::login($user);
+            return redirect()->route('oauth.login', $params);
         }
+
+        $user = Auth::user();
 
         // Generate authorization code
         $code = Str::random(40);
@@ -145,7 +143,7 @@ class OAuthController extends Controller
         // Store the code in Redis with short expiration (10 minutes)
         Redis::setex("oauth:code:$code", 600, json_encode([
             'client_id' => $client->id,
-            'user_id' => $token->user_id,
+            'user_id' => $user->id,
             'scopes' => $request->scope ? explode(' ', $request->scope) : []
         ]));
 
@@ -182,7 +180,8 @@ class OAuthController extends Controller
 
         if (!$client) {
             return response()->json([
-                'error' => 'invalid_client'
+                'error' => 'invalid_client',
+                'error_description' => 'Client not found'
             ], 401);
         }
 
@@ -224,8 +223,8 @@ class OAuthController extends Controller
         } else {
             // Refresh token flow
             $token = OAuthAccessToken::where('refresh_token', $request->refresh_token)
-                                   ->where('client_id', $client->id)
-                                   ->first();
+                ->where('client_id', $client->id)
+                ->first();
 
             if (!$token) {
                 return response()->json([
