@@ -57,7 +57,7 @@ CREATE TABLE public.applications (
     uuid character varying(36),
     code character varying,
     client_id character varying,
-    client_secret varying,
+    client_secret character varying,
     name character varying,
     alias character varying,
     description text,
@@ -647,7 +647,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 -- Data for Name: applications; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.applications (id, uuid, code, client_id, client_secret, name, alias, description, image, is_active, base_url, login_url, platform_type, visibility, created_at, updated_at) FROM stdin;
+COPY public.applications (id, uuid, client_id, client_secret, code, name, alias, description, image, is_active, base_url, login_url, platform_type, visibility, created_at, updated_at) FROM stdin;
 1	08bdfb64-4fb7-4d80-81a0-23e0af16842e	bd574400159eeabe	a7b6bdcb2efabad81bdc1525f14ff05a	SSO	Single Sign On	SSO	Portal autentikasi terpusat	/images/sso.png	t	https://sso.universitaspertamina.ac.id	https://sso.universitaspertamina.ac.id/login	web	internal	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
 \.
 
