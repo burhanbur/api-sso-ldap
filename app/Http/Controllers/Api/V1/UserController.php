@@ -743,6 +743,7 @@ class UserController extends Controller
         }
 
         try {
+            $importErrors = [];
             $realPath = $request->file('file');
             $rows = (Excel::toArray(new ReadExcelImport, $realPath)[0]) ?? [];
             $utils = new Utils;
@@ -791,15 +792,48 @@ class UserController extends Controller
                     $this->_syncUserAccess($user, []);
                     $sync = Ldap::syncUserFromLdap($user, 'store', $plainPassword);
 
+                    if (!$sync) {
+                        throw new Exception('Gagal terhubung ke server direktori. Silakan cek kredensial admin LDAP atau konfigurasi server.');
+                    }
+
                     DB::commit();
                 } catch (Exception $exLoop) {
                     DB::rollback();
+                    // Hey ChatGPT, buatkan log error di sini dan juga notifikasi (entah berupa file report atau apapun yang penting user tahu kalau ada yang gagal diimport)
+
+                    $importErrors[] = [
+                        'baris' => $key + 1,
+                        'nama' => $full_name,
+                        'username' => $username,
+                        'email' => $email,
+                        'alasan' => $exLoop->getMessage()
+                    ];
                 }
             }
 
+            $reportPath = null;
+
+            if (!empty($importErrors)) {
+                $reportName = 'import_errors_' . now()->format('Ymd_His') . '.csv';
+                $reportPath = storage_path('app/public/' . $reportName);
+                
+                $fp = fopen($reportPath, 'w');
+                fputcsv($fp, ['Baris', 'Nama Lengkap', 'Username', 'Email', 'Alasan Gagal']);
+
+                foreach ($importErrors as $error) {
+                    fputcsv($fp, [$error['baris'], $error['nama'], $error['username'], $error['email'], $error['alasan']]);
+                }
+
+                fclose($fp);
+            }
+
             return $this->successResponse(
-                null,
-                'Data pengguna berhasil diimpor.'
+                [
+                    'preview_errors' => $importErrors,
+                    'error_report' => $reportPath ? asset('storage/' . basename($reportPath)) : null,
+                ], count($importErrors) > 0
+                ? 'Import selesai dengan beberapa error. Silakan cek file laporan.'
+                : 'Data pengguna berhasil diimpor.'
             );
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
@@ -857,6 +891,12 @@ class UserController extends Controller
             UserRole::where('user_id', $user->id)->delete();
             Notification::where('user_id', $user->id)->delete();
             $user->delete();
+
+            $sync = Ldap::deleteLdapUser($user->username);
+
+            if (!$sync) {
+                throw new Exception('Gagal terhubung ke server direktori. Silakan cek kredensial admin LDAP atau konfigurasi server.');
+            }
 
             DB::commit();
         } catch (Exception $ex) {

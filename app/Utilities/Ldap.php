@@ -7,10 +7,32 @@ use Illuminate\Support\Str;
 
 class Ldap
 {
+    private static $initialized = false;
+    private static $ldapPeopleOu;
+    private static $ldapBaseDn;
+    private static $ldapHost;
+    private static $ldapPort;
+    private static $ldapBindDn;
+    private static $ldapBindPassword;
+
+    private static function init()
+    {
+        if (!self::$initialized) {
+            self::$ldapPeopleOu = config('ldap.people_ou');
+            self::$ldapBaseDn = config('ldap.base_dn');
+            self::$ldapHost = config('ldap.host');
+            self::$ldapPort = config('ldap.port');
+            self::$ldapBindDn = config('ldap.bind_dn');
+            self::$ldapBindPassword = config('ldap.bind_password');
+            self::$initialized = true;
+        }
+    }
+    
     public static function bind($username, $password): bool
     {
-        $dn = "uid={$username}," . env('LDAP_PEOPLE_OU') . "," . env('LDAP_BASE_DN');
-        $ldapConn = ldap_connect(env('LDAP_HOST'), env('LDAP_PORT'));
+        self::init();
+        $dn = "uid={$username}," . self::$ldapPeopleOu . "," . self::$ldapBaseDn;
+        $ldapConn = ldap_connect(self::$ldapHost, self::$ldapPort);
 
         ldap_set_option($ldapConn, LDAP_OPT_PROTOCOL_VERSION, 3);
         ldap_set_option($ldapConn, LDAP_OPT_REFERRALS, 0);
@@ -20,11 +42,12 @@ class Ldap
 
     public static function syncUserFromLdap($user, $type, $password = null)
     {
+        self::init();
         if (!$ldapConnection = self::connectToLdap()) {
             return null;
         }
 
-        $dn = "uid={$user->username}," . env('LDAP_PEOPLE_OU') . "," . env('LDAP_BASE_DN');
+        $dn = "uid={$user->username}," . self::$ldapPeopleOu . "," . self::$ldapBaseDn;
         $entry = [
             'objectClass' => [
                 'inetOrgPerson',
@@ -71,7 +94,8 @@ class Ldap
 
     public static function connectToLdap()
     {
-        $ldapConn = ldap_connect(env('LDAP_HOST'), env('LDAP_PORT'));
+        self::init();
+        $ldapConn = ldap_connect(self::$ldapHost, self::$ldapPort);
         
         if (!$ldapConn) {
             return null;
@@ -80,8 +104,8 @@ class Ldap
         ldap_set_option($ldapConn, LDAP_OPT_PROTOCOL_VERSION, 3);
         ldap_set_option($ldapConn, LDAP_OPT_REFERRALS, 0);
 
-        $bindDn = env('LDAP_BIND_DN');
-        $bindPw = env('LDAP_BIND_PASSWORD');
+        $bindDn = self::$ldapBindDn;
+        $bindPw = self::$ldapBindPassword;
         
         if (!@ldap_bind($ldapConn, $bindDn, $bindPw)) {
             return null;
@@ -92,13 +116,24 @@ class Ldap
 
     public static function listLdapUsers(): array
     {
+        self::init();
         $conn = self::connectToLdap();
 
         if (!$conn) return [];
 
-        $baseDn = env('LDAP_PEOPLE_OU') . ',' . env('LDAP_BASE_DN');
+        $baseDn = self::$ldapPeopleOu . ',' . self::$ldapBaseDn;
         $filter = '(objectClass=person)';
-        $attributes = ['uid', 'cn', 'employeeNumber', 'givenName', 'cn', 'mail', 'title', 'joinDate', 'alternateEmail', 'activeStatus'];
+        $attributes = [
+            'uid', 
+            'cn', 
+            'employeeNumber', 
+            'givenName',
+            'mail', 
+            'title', 
+            'joinDate', 
+            'alternateEmail', 
+            'activeStatus'
+        ];
 
         $search = ldap_search($conn, $baseDn, $filter, $attributes);
         $entries = ldap_get_entries($conn, $search);
@@ -120,5 +155,23 @@ class Ldap
         }
 
         return $users;
+    }
+
+    public static function deleteLdapUser($username): bool
+    {
+        self::init();
+        if (!$ldapConnection = self::connectToLdap()) {
+            return false;
+        }
+
+        $dn = "uid={$username}," . self::$ldapPeopleOu . "," . self::$ldapBaseDn;
+        
+        // Check if user exists first
+        $check = @ldap_read($ldapConnection, $dn, '(objectClass=*)');
+        if (!$check) {
+            return false; // User doesn't exist
+        }
+
+        return @ldap_delete($ldapConnection, $dn);
     }
 }
