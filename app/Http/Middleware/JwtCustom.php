@@ -24,8 +24,8 @@ class JwtCustom
         }
 
         // Kalau tidak ada, cek cookie
-        if (!$token && $request->hasCookie('access_token')) {
-            $token = $request->cookie('access_token');
+        if (!$token && $request->hasCookie(config('cookie.name'))) {
+            $token = $request->cookie(config('cookie.name'));
             $isCookie = true;
         }
 
@@ -64,7 +64,7 @@ class JwtCustom
 
                 return $response->withCookie(
                     cookie(
-                        'access_token',
+                        config('cookie.name'),
                         $newToken,
                         config('jwt.refresh_ttl'),
                         '/',

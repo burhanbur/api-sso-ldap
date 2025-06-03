@@ -106,7 +106,7 @@ class AuthController extends Controller
         ]);
 
         $response->cookie(
-            'access_token', // nama cookie
+            config('cookie.name'), // nama cookie
             $token, // nilai token
             config('jwt.refresh_ttl'), // durasi dalam menit
             '/', // path
@@ -146,7 +146,7 @@ class AuthController extends Controller
     {
         try {
             $user = auth()->user();
-            $cookieAccessToken = $request->cookie('access_token');
+            $cookieAccessToken = $request->cookie(config('cookie.name'));
             $token = JWTAuth::getToken() ? JWTAuth::getToken()->get() : $cookieAccessToken;
 
             Utils::getInstance()->removeTokenFromRedis($user->uuid, $token);
@@ -162,7 +162,7 @@ class AuthController extends Controller
 
             if ($cookieAccessToken) {
                 $response->cookie(
-                    'access_token', // nama cookie
+                    config('cookie.name'), // nama cookie
                     '', // nilai kosong untuk menghapus cookie
                     -1, // durasi negatif untuk menghapus cookie
                     '/', // path
@@ -539,7 +539,7 @@ class AuthController extends Controller
     public function refreshToken(Request $request)
     {
         try {
-            $cookieAccessToken = $request->cookie('access_token');
+            $cookieAccessToken = $request->cookie(config('cookie.name'));
 
             $oldToken = JWTAuth::getToken();
             $oldTokenString = $oldToken->get();
@@ -560,7 +560,7 @@ class AuthController extends Controller
 
             if ($cookieAccessToken) {
                 $response->cookie(
-                    'access_token', // nama cookie
+                    config('cookie.name'), // nama cookie
                     $newToken, // nilai token
                     config('jwt.refresh_ttl'), // durasi dalam menit
                     '/', // path
@@ -645,7 +645,7 @@ class AuthController extends Controller
     public function startImpersonate(Request $request, $uuid)
     {
         $admin = auth()->user();
-        $cookieAccessToken = $request->cookie('access_token');
+        $cookieAccessToken = $request->cookie(config('cookie.name'));
         $target = User::where('uuid', $uuid)->first();
 
         if (!$target) {
@@ -689,7 +689,7 @@ class AuthController extends Controller
 
         if ($cookieAccessToken) {
             $response->cookie(
-                'access_token', // nama cookie
+                config('cookie.name'), // nama cookie
                 $token, // nilai token
                 config('jwt.refresh_ttl'), // durasi dalam menit
                 '/', // path
@@ -774,10 +774,10 @@ class AuthController extends Controller
             'Berhasil mengakhiri impersonasi sebagai ' . $current->full_name . '.'
         );
 
-        $cookieAccessToken = $request->cookie('access_token');
+        $cookieAccessToken = $request->cookie(config('cookie.name'));
         if ($cookieAccessToken) {
             $response->cookie(
-                'access_token', // nama cookie
+                config('cookie.name'), // nama cookie
                 $adminToken, // nilai token
                 config('jwt.refresh_ttl'), // durasi dalam menit
                 '/', // path

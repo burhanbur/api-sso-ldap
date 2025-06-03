@@ -88,7 +88,7 @@ class ClientController extends Controller
                 throw new Exception('Aplikasi tidak ditemukan atau tidak aktif.', 400);
             }
 
-            $token = @$_COOKIE['access_token'];
+            $token = @$_COOKIE[config('cookie.name')];
 
             if (!$token) {
                 throw new Exception('Token tidak ditemukan. Silakan masuk melalui aplikasi utama terlebih dahulu.', 400);
@@ -329,7 +329,7 @@ class ClientController extends Controller
                 'Sesi Anda telah berakhir.'
             )
             ->cookie(
-                'access_token', // nama cookie
+                config('cookie.name'), // nama cookie
                 '', // nilai kosong untuk menghapus cookie
                 -1, // durasi negatif untuk menghapus cookie
                 '/', // path
