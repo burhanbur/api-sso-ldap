@@ -888,6 +888,7 @@ class UserController extends Controller
                 throw new Exception('Pengguna tidak ditemukan.');
             }
 
+            $fullName = $user->full_name;
             UserRole::where('user_id', $user->id)->delete();
             Notification::where('user_id', $user->id)->delete();
             $user->delete();
@@ -899,6 +900,8 @@ class UserController extends Controller
             }
 
             DB::commit();
+
+            return $this->successResponse(null, 'Pengguna ' . $fullName . ' berhasil dihapus.');
         } catch (Exception $ex) {
             DB::rollBack();
             
