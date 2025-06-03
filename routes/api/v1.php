@@ -84,6 +84,8 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::put('/{uuid}/status', [UserController::class, 'updateStatus']);
                 Route::post('generate-username', [UserController::class, 'generateUsername']);
                 Route::post('import', [UserController::class, 'import']);
+
+                Route::delete('/{uuid}', [UserController::class, 'delete']);
             });
 
             // Device Management

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+use App\Models\Notification;
 use App\Models\User;
 use App\Models\UserRole;
 use App\Http\Resources\UserResource;
@@ -802,6 +803,66 @@ class UserController extends Controller
             );
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/users/{uuid}",
+     *     summary="Delete user",
+     *     tags={"Users"},
+     *     security={{ "bearerAuth": {} }},
+     *     @OA\Parameter(
+     *         name="uuid",
+     *         in="path",
+     *         description="User UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="User deleted successfully"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/5e9b6c5e-4bde-11d1-9f0e-1234567890ab"),
+     *             @OA\Property(property="method", type="string", example="DELETE"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Internal server error"),
+     *             @OA\Property(property="url", type="string", example="http://localhost:8000/api/v1/users/5e9b6c5e-4bde-11d1-9f0e-1234567890ab"),
+     *             @OA\Property(property="method", type="string", example="DELETE"),
+     *             @OA\Property(property="timestamp", type="string", example="2023-06-01 10:00:00")
+     *         )
+     *     )
+     * )
+     */
+    public function delete($uuid) 
+    {
+        try {
+            DB::beginTransaction();
+
+            $user = User::where('uuid', $uuid)->first();
+
+            if (!$user) {
+                throw new Exception('Pengguna tidak ditemukan.');
+            }
+
+            UserRole::where('user_id', $user->id)->delete();
+            Notification::where('user_id', $user->id)->delete();
+            $user->delete();
+
+            DB::commit();
+        } catch (Exception $ex) {
+            DB::rollBack();
+            
+            return $this->errorResponse($ex->getMessage(), 500);
         }
     }
 

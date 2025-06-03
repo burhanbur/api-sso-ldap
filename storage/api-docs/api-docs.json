@@ -3135,6 +3135,96 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete user",
+                "operationId": "6f69d6a09252414c4d8d8e6b80b2516c",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "User UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User deleted successfully"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/5e9b6c5e-4bde-11d1-9f0e-1234567890ab"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "DELETE"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Internal server error"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "http://localhost:8000/api/v1/users/5e9b6c5e-4bde-11d1-9f0e-1234567890ab"
+                                        },
+                                        "method": {
+                                            "type": "string",
+                                            "example": "DELETE"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "example": "2023-06-01 10:00:00"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/users/{uuid}/status": {
