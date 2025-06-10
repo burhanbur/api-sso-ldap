@@ -23,6 +23,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'client.authorize' => \App\Http\Middleware\EnsureUserAppAccess::class,
             'oauth.auth' => \App\Http\Middleware\ValidateOAuthToken::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'oauth/*',
+        ]);
+
+        $middleware->encryptCookies(except: [
+           'central_access_token'
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->renderable(function (Throwable $e, Request $request) {

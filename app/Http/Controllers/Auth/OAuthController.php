@@ -22,16 +22,35 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class OAuthController extends Controller
 {
     public function loginForm(Request $request)
     {
         $clientId = $request->query('client_id');
+        $redirect_uri = $request->query('redirect_uri');
         $client = Application::where('client_id', $clientId)->first();
-        $redirect_uri = $client->redirect_uri ?? '';
+        
+        $cookieAccessToken = @$_COOKIE[config('cookie.name')];
+        if ($cookieAccessToken) {
+            $params = [
+                'client_id' => $request->query('client_id'),
+                'redirect_uri' => $request->query('redirect_uri'),
+                'response_type' => 'code',
+                'scope' => $request->query('scope'),
+            ];
+
+            return redirect()->route('oauth.authorize', $params);
+        }
+
+        if (!$clientId || !$redirect_uri) {
+            return Redirect::to(env('CENTRAL_AUTH_URL'));
+        }
 
         return view('oauth.login');
     }
@@ -45,20 +64,19 @@ class OAuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('oauth.error', [
-                'error' => 'invalid_request', 
-                'error_description' => $validator->errors()->first()
-            ]);
+            // return redirect()->route('oauth.error', [
+            //     'error' => 'invalid_request', 
+            //     'error_description' => $validator->errors()->first()
+            // ]);
+            
+            return back()->withErrors(['error_description' => $validator->errors()->first()]);
         }
 
         // Verify client
         $client = Application::where('client_id', $request->client_id)->first();
 
         if (!$client) {
-            return redirect()->route('oauth.error', [
-                'error' => 'invalid_client',
-                'error_description' => 'Client not found'
-            ]);
+            return back()->withErrors(['client_id' => 'Client not found']);
         }
 
         try {
@@ -72,21 +90,36 @@ class OAuthController extends Controller
 
             $user = User::where('username', $request->username)->where('status', 'Aktif')->first();
 
-            if ($user) {
-                Auth::login($user);
-
-                $oauthRequest = [
-                    'client_id' => $request->client_id,
-                    'redirect_uri' => $request->redirect_uri,
-                    'response_type' => 'code',
-                    'scope' => $request->scope,
-                    'state' => $request->state,
-                ];
-
-                return redirect()->route('oauth.authorize', $oauthRequest);
-            } else {
-                throw new Exception('Invalid credentials');
+            if (!$user) {
+                throw new Exception('User not found');
             }
+
+            $token = JWTAuth::fromUser($user);
+
+            Utils::getInstance()->storeTokenInRedis($user->uuid, $token);
+
+            $oauthRequest = [
+                'client_id' => $request->client_id,
+                'redirect_uri' => $request->redirect_uri,
+                'response_type' => 'code',
+                'scope' => $request->scope,
+                'state' => $request->state,
+            ];
+
+            $response = redirect()->route('oauth.authorize', $oauthRequest);
+            $response->cookie(
+                    config('cookie.name'), // nama cookie
+                $token, // nilai token
+                config('jwt.refresh_ttl'), // durasi dalam menit
+                '/', // path
+                config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+                true, // httpOnly (tidak bisa dibaca JS)
+                false, // raw
+                'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+            );
+
+            return $response;
         } catch (Exception $e) {
             return back()->withErrors(['username' => 'Invalid credentials']);
         }
@@ -105,37 +138,49 @@ class OAuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->route('oauth.error', [
-                'error' => 'invalid_request',
-                'error_description' => $validator->errors()->first()
-            ]);
+            // return redirect()->route('oauth.error', [
+            //     'error' => 'invalid_request',
+            //     'error_description' => $validator->errors()->first()
+            // ]);
+            return back()->withErrors(['error_description' => $validator->errors()->first()]);
         }
 
         // Verify client
         $client = Application::where('client_id', $request->client_id)->first();
         if (!$client) {
-            return redirect()->route('oauth.error', [
-                'error' => 'invalid_client',
-                'error_description' => 'Client not found'
-            ]);
+            // return redirect()->route('oauth.error', [
+            //     'error' => 'invalid_client',
+            //     'error_description' => 'Client not found'
+            // ]);
+            return back()->withErrors(['client_id' => 'Client not found']);
         }
 
+        // TODO: ini harus dicek juga redirect_uri nya sama atau tidak dengan yang di database `applications`
         // Verify redirect URI
-        if ($client->redirect_uri !== $request->redirect_uri) {
-            return redirect()->route('oauth.error', [
-                'error' => 'invalid_redirect_uri',
-                'error_description' => 'Redirect URI does not match'
-            ]);
-        }
+        // if ($client->redirect_uri !== $request->redirect_uri) {
+        //     return redirect()->route('oauth.error', [
+        //         'error' => 'invalid_redirect_uri',
+        //         'error_description' => 'Redirect URI does not match'
+        //     ]);
+        // }
 
         $params = $validator->validated();
 
-        // Check if user is already authenticated
-        if (!Auth::check()) {
+        $cookieAccessToken = @$_COOKIE[config('cookie.name')];
+
+        if (!$cookieAccessToken) {
             return redirect()->route('oauth.login', $params);
         }
 
-        $user = Auth::user();
+        JWTAuth::setToken($cookieAccessToken);
+        $user = JWTAuth::authenticate();
+
+        // Check if user is already authenticated
+        if (!$user) {
+            return redirect()->route('oauth.login', $params);
+        }
+        
+        auth()->setUser($user);
 
         // Generate authorization code
         $code = Str::random(40);
@@ -174,9 +219,10 @@ class OAuthController extends Controller
         }
 
         // Verify client credentials
-        $client = Application::where('client_id', $request->client_id)
-                           ->where('client_secret', $request->client_secret)
-                           ->first();
+        $client = Application::query()
+            ->where('client_id', $request->client_id)
+            ->where('client_secret', $request->client_secret)
+            ->first();
 
         if (!$client) {
             return response()->json([
@@ -214,13 +260,17 @@ class OAuthController extends Controller
                 'scopes' => $codeData->scopes
             ]);
 
+            $user = User::find($codeData->user_id);
+
             return response()->json([
+                'user' => $user,
                 'access_token' => $accessToken,
                 'refresh_token' => $refreshToken,
                 'token_type' => 'Bearer',
                 'expires_in' => 86400
             ]);
         } else {
+            // NOTE: refresh_token belum dipakai
             // Refresh token flow
             $token = OAuthAccessToken::where('refresh_token', $request->refresh_token)
                 ->where('client_id', $client->id)

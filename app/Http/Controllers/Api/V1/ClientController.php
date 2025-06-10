@@ -121,8 +121,10 @@ class ClientController extends Controller
                 throw new Exception('Pengguna tidak memiliki akses ke aplikasi ini.', 401);
             }
 
+            $redirectTo = $redirectUrl . '?' . config('cookie.name') . '=' . $token;
+
             // Redirect to the client application with the token
-            return Redirect::to($redirectUrl . '?access_token=' . $token);
+            return Redirect::to($redirectTo);
         } catch (Exception $ex) {
             Log::error('Error during SSO login: ' . $ex->getMessage());
             return Redirect::to(env('CENTRAL_AUTH_URL'));

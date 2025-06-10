@@ -648,7 +648,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 --
 
 COPY public.applications (id, uuid, client_id, client_secret, code, name, alias, description, image, is_active, base_url, login_url, platform_type, visibility, created_at, updated_at) FROM stdin;
-1	08bdfb64-4fb7-4d80-81a0-23e0af16842e	bd574400159eeabe	a7b6bdcb2efabad81bdc1525f14ff05a	SSO	Single Sign On	SSO	Portal autentikasi terpusat	/images/sso.png	t	https://sso.universitaspertamina.ac.id	https://sso.universitaspertamina.ac.id/login	web	internal	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
+1	08bdfb64-4fb7-4d80-81a0-23e0af16842e	bd574400159eeabe	a7b6bdcb2efabad81bdc1525f14ff05a	SSO	Single Sign On	SSO	Portal autentikasi terpusat	/images/sso.png	t	https://sso.universitaspertamina.ac.id	https://sso.universitaspertamina.ac.id/login	Web	Internal	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
 \.
 
 
@@ -806,7 +806,7 @@ SELECT pg_catalog.setval('public.role_types_id_seq', 4, true);
 
 COPY public.roles (id, uuid, name, display_name, description, role_type_id, scope_type_id, created_at, updated_at) FROM stdin;
 1	232c15aa-8d19-4c56-9fd0-94ed89d3c905	admin	Administrator Sistem Utama	Admin pengelola sistem autentikasi pusat	3	1	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
-2	11e0349a-e47a-4609-b7b8-5988a7b74da2	user	Civitas Akademik	Civitas akademik yang terdaftar	2	6	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
+2	11e0349a-e47a-4609-b7b8-5988a7b74da2	user	Civitas Akademik	Civitas akademik yang terdaftar dalam sistem	2	6	2025-04-10 13:44:37.564006	2025-04-10 13:44:37.564006
 \.
 
 
