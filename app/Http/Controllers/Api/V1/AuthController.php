@@ -384,6 +384,7 @@ class AuthController extends Controller
             'new_password' => 'required|min:8',
             'new_password_confirmation' => 'required|min:8|same:new_password',
         ], [
+            'current_password.required' => 'Current password is required',
             'new_password.min' => 'Password must be at least 8 characters',
             'new_password_confirmation.same' => 'Password confirmation does not match',
         ]);
@@ -407,7 +408,7 @@ class AuthController extends Controller
 
             // Bind pakai password lama (validasi)
             if (!@ldap_bind($ldapConn, $userDn, $request->current_password)) {
-                return $this->errorResponse('Password yang Anda masukkan tidak valid.', 403);
+                return $this->errorResponse('Password lama yang Anda masukkan tidak valid.', 403);
             }
 
             // Format SSHA baru
