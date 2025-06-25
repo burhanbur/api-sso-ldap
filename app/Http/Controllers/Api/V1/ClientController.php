@@ -26,6 +26,8 @@ use App\Utilities\Utils;
 use App\Traits\ApiResponse;
 
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 use Exception;
 
@@ -214,9 +216,26 @@ class ClientController extends Controller
             // $algo = config('jwt.algo');
             // $decoded = JWT::decode($tokenString, new Key($secret, $algo));
             // $user = User::find($decoded->sub);
-            
-            JWTAuth::setToken($tokenString);
-            $user = JWTAuth::authenticate();
+
+            try {
+                JWTAuth::setToken($tokenString);
+                $user = JWTAuth::authenticate();
+            } catch (TokenExpiredException $e) {
+                // Token expired, coba refresh
+                try {
+                    $newToken = JWTAuth::refresh($tokenString);
+                    JWTAuth::setToken($newToken);
+                    $user = JWTAuth::authenticate();
+
+                    // Update Redis: hapus token lama, simpan token baru
+                    Utils::getInstance()->removeTokenFromRedis($user->uuid, $tokenString);
+                    Utils::getInstance()->storeTokenInRedis($user->uuid, $newToken);
+
+                    $tokenString = $newToken; // gunakan token baru untuk response
+                } catch (JWTException $refreshException) {
+                    return $this->errorResponse('Token telah kedaluwarsa dan tidak dapat diperbarui.', 401);
+                }
+            }
 
             $now = now()->timestamp;
             // Check if token exists in Redis and is still valid
@@ -469,9 +488,11 @@ class ClientController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             @OA\Property(property="code", type="string", example="NIP/NIM"),
+     *             @OA\Property(property="email", type="string", example="johndoe@example.com"),
      *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="username", type="string", example="johndoe"),
      *             @OA\Property(property="type", type="string", example="staff"),
+     *             @OA\Property(property="username", type="string", example="johndoe"),
+     *             @OA\Property(property="password", type="string", example="12345678"),
      *         )
      *     ),
      *     @OA\Response(
@@ -493,10 +514,11 @@ class ClientController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'code' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
             'name' => 'required|string|max:255',
             'type' => 'required|string|max:255|in:student,staff',
             'username' => 'nullable|string|max:255',
-            'email' => 'required|email|max:255',
+            'password' => 'nullable|string|min:8',
         ]);
 
         if ($validator->fails()) {
