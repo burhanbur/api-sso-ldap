@@ -23,6 +23,7 @@ use App\Models\UserRole;
 use App\Http\Resources\UserResource;
 use App\Utilities\Ldap;
 use App\Utilities\Utils;
+use App\Services\ClientService;
 use App\Traits\ApiResponse;
 
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -217,25 +218,46 @@ class ClientController extends Controller
             // $decoded = JWT::decode($tokenString, new Key($secret, $algo));
             // $user = User::find($decoded->sub);
 
-            // try {
+            try {
                 JWTAuth::setToken($tokenString);
                 $user = JWTAuth::authenticate();
-            // } catch (TokenExpiredException $e) {
-            //     // Token expired, coba refresh
-            //     try {
-            //         $newToken = JWTAuth::refresh($tokenString);
-            //         JWTAuth::setToken($newToken);
-            //         $user = JWTAuth::authenticate();
+            } catch (TokenExpiredException $e) {
+                // Token expired, coba refresh
+                try {
+                    $newToken = JWTAuth::refresh($tokenString);
+                    JWTAuth::setToken($newToken);
+                    $user = JWTAuth::authenticate();
 
-            //         // Update Redis: hapus token lama, simpan token baru
-            //         Utils::getInstance()->removeTokenFromRedis($user->uuid, $tokenString);
-            //         Utils::getInstance()->storeTokenInRedis($user->uuid, $newToken);
+                    // Update Redis: hapus token lama, simpan token baru
+                    Utils::getInstance()->removeTokenFromRedis($user->uuid, $tokenString);
+                    Utils::getInstance()->storeTokenInRedis($user->uuid, $newToken);
 
-            //         $tokenString = $newToken; // gunakan token baru untuk response
-            //     } catch (JWTException $refreshException) {
-            //         return $this->errorResponse('Token telah kedaluwarsa dan tidak dapat diperbarui.', 401);
-            //     }
-            // }
+                    $tokenString = $newToken; // gunakan token baru untuk response
+
+                    $service = new ClientService;
+                    $response = $service->validateTokenClient($user, $tokenString, $appId);
+
+                    if (isset($response['success']) && $response['success']) {
+                        return $this->successResponse($response['data'], $response['message'])
+                        ->cookie(
+                            config('cookie.name'), // nama cookie
+                            $tokenString, // nilai token baru
+                            config('jwt.refresh_ttl'), // masa berlakunya cookie
+                            '/', // path
+                            config('cookie.domain'), // domain lintas subdomain (kalau dev atau prod ganti .universitaspertamina.ac.id)
+                            config('cookie.secure'), // secure (gunakan true (HTTPS) di produksi)
+                            true, // httpOnly (tidak bisa dibaca JS)
+                            false, // raw
+                            'Lax' // SameSite ('Strict', 'Lax' atau 'None')
+                        );
+                    } else {
+                        return $this->errorResponse($response['message'], 401);
+                    }
+
+                } catch (JWTException $refreshException) {
+                    return $this->errorResponse('Token telah kedaluwarsa dan tidak dapat diperbarui.', 401);
+                }
+            }
 
             $now = now()->timestamp;
             // Check if token exists in Redis and is still valid
