@@ -590,7 +590,7 @@ class ClientController extends Controller
                 $user->email = $request->email;
                 $user->alt_email = $request->input('alt_email');
                 $user->join_date = $request->input('join_date', now()->format('Y-m-d'));
-                $user->title = $request->input('title');
+                $user->title = $request->input('title', $request->type == 'student' ? 'Mahasiswa' : 'Pegawai');
                 $user->status = $request->input('status', 'Aktif');
             }
             
