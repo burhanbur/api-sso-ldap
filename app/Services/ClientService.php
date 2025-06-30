@@ -34,8 +34,6 @@ class ClientService
 {
     public function validateTokenClient($user, $tokenString, $appId)
     {
-        $response = ['success' => false, 'message' => null, 'data' => []];
-
         $now = now()->timestamp;
         // Check if token exists in Redis and is still valid
         $expiryTime = Redis::zscore("user_tokens:{$user->uuid}", $tokenString);

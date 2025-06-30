@@ -237,7 +237,7 @@ class ClientController extends Controller
                     $service = new ClientService;
                     $response = $service->validateTokenClient($user, $tokenString, $appId);
 
-                    if (isset($response['success']) && $response['success']) {
+                    if ($response && $response['success']) {
                         return $this->successResponse($response['data'], $response['message'])
                         ->cookie(
                             config('cookie.name'), // nama cookie
@@ -253,8 +253,8 @@ class ClientController extends Controller
                     } else {
                         return $this->errorResponse($response['message'], 401);
                     }
-
                 } catch (JWTException $refreshException) {
+                    Log::error('Token refresh failed: ' . $refreshException->getMessage());
                     return $this->errorResponse('Token telah kedaluwarsa dan tidak dapat diperbarui.', 401);
                 }
             }
