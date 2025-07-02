@@ -201,6 +201,8 @@ class ClientController extends Controller
      */
     public function checkSession(Request $request)
     {
+        $service = new ClientService;
+
         try {
             $appId = $request->header('x-app-id');
             if (!$appId) {
@@ -221,7 +223,7 @@ class ClientController extends Controller
             try {
                 JWTAuth::setToken($tokenString);
                 $user = JWTAuth::authenticate();
-            } catch (TokenExpiredException $e) {
+            } catch (TokenExpiredException $expired) {
                 // Token expired, coba refresh
                 try {
                     $newToken = JWTAuth::refresh($tokenString);
@@ -233,8 +235,6 @@ class ClientController extends Controller
                     Utils::getInstance()->storeTokenInRedis($user->uuid, $newToken);
 
                     $tokenString = $newToken; // gunakan token baru untuk response
-
-                    $service = new ClientService;
                     $response = $service->validateTokenClient($user, $tokenString, $appId);
 
                     if ($response && $response['success']) {
@@ -254,87 +254,21 @@ class ClientController extends Controller
                         return $this->errorResponse($response['message'], 401);
                     }
                 } catch (JWTException $refreshException) {
-                    Log::error('Token refresh failed: ' . $refreshException->getMessage());
+                    Log::error('Token refresh failed: ' . $refreshException->getMessage() . ' in file ' . $refreshException->getFile() . ' on line ' . $refreshException->getLine());
                     return $this->errorResponse('Token telah kedaluwarsa dan tidak dapat diperbarui.', 401);
                 }
             }
 
-            $now = now()->timestamp;
-            // Check if token exists in Redis and is still valid
-            $expiryTime = Redis::zscore("user_tokens:{$user->uuid}", $tokenString);
-            if (!$expiryTime || $expiryTime < $now) {
-                return $this->errorResponse('Token yang digunakan tidak berlaku atau sudah habis masa berlakunya.', 401);
-            }
+            $response = $service->validateTokenClient($user, $tokenString, $appId);
 
-            // Load user relationships needed by client applications
-            $user->load(['userRoles.role', 'userRoles.application', 'userRoles.entityType']);
-
-            // Check if user has access to the requesting application
-            $hasAccess = $user->userRoles()
-                ->whereHas('application', function ($query) use ($appId) {
-                    $query->where('uuid', $appId)
-                          ->where('is_active', true);
-                })
-                ->exists();
-
-            if (!$hasAccess) {
-                return $this->errorResponse('Akses ke aplikasi ini tidak diizinkan untuk pengguna ini.', 403);
-            }
-
-            // Get user roles specific to this application
-            $applicationRoles = $user->userRoles()
-                ->with(['role', 'entityType'])
-                ->whereHas('application', function ($query) use ($appId) {
-                    $query->where('uuid', $appId);
-                })
-                ->get();
-        
-            // Get token details
-            $details = Redis::get("token_details:{$tokenString}");
-            $isImpersonation = false;
-            $impersonatedBy = null;
-            
-            if ($details) {
-                $details = json_decode($details, true);
-                if (isset($details['is_impersonation']) && $details['is_impersonation']) {
-                    $isImpersonation = true;
-                    $adminUser = User::where('uuid', $details['impersonated_by'])->first();
-                    $impersonatedBy = $adminUser ? $adminUser->name : 'Unknown Admin';
-                }
+            if (!$response || !$response['success']) {
+                throw new Exception($response['message'] ?? 'Token validation failed', 401);
             }
             
-            // Return user information for the client application
-            $response = [
-                'user' => new UserResource($user),
-                'access_token' => $tokenString,
-                'token_type' => 'bearer',
-                'expires_in' => ($expiryTime - $now),
-                'formatted_expires_in' => Carbon::createFromTimestamp($expiryTime)->format('Y-m-d H:i:s'),
-                'sso_session_valid' => true,
-                'application_roles' => $applicationRoles->map(function ($userRole) {
-                    return [
-                        'role' => [
-                            'name' => $userRole->role->name,
-                            'display_name' => $userRole->role->display_name,
-                        ],
-                        'entity_type' => $userRole->entityType ? [
-                            'name' => $userRole->entityType->name,
-                            'code' => $userRole->entityType->code,
-                        ] : null,
-                        'entity_id' => $userRole->entity_id,
-                    ];
-                })
-            ];
-            
-            if ($isImpersonation) {
-                $response['is_impersonation'] = true;
-                $response['impersonated_by'] = $impersonatedBy;
-            }
-            
-            return $this->successResponse($response, 'Token validation successful');
+            return $this->successResponse($response['data'], $response['message']);
         } catch (Exception $ex) {
-            Log::error('Error during SSO validation: ' . $ex->getMessage());
-            return $this->errorResponse('Token validation failed: ' . $ex->getMessage(), 500);
+            Log::error('Error during SSO validation: ' . $ex->getMessage() . ' in file ' . $ex->getFile() . ' on line ' . $ex->getLine());
+            return $this->errorResponse('Token validation failed: ' . $ex->getMessage(), $ex->getCode() ?: 500);
         }
     }
 
